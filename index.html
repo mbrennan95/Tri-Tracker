@@ -1,4 +1,4 @@
-<!DOCTYPE .html>
+<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -67,9 +67,15 @@
             </h1>
             <p class="text-slate-400 mt-1 text-sm">Your year-round multi-sport companion</p>
         </div>
-        <div id="auth-status" class="text-xs font-medium px-3 py-1 bg-slate-800 text-slate-300 rounded-full border border-slate-700 flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse" id="auth-indicator"></span>
-            Connecting...
+        <div class="flex flex-col items-end gap-2">
+            <button id="google-btn" class="text-xs font-medium px-3 py-1.5 bg-white text-slate-900 hover:bg-slate-200 rounded-full transition-colors flex items-center gap-2 shadow-sm">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Sign in with Google
+            </button>
+            <div id="auth-status" class="text-xs font-medium px-3 py-1 bg-slate-800 text-slate-300 rounded-full border border-slate-700 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-slate-500 animate-pulse" id="auth-indicator"></span>
+                <span id="auth-text">Connecting...</span>
+            </div>
         </div>
     </header>
 
@@ -103,18 +109,22 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-3 gap-2 text-center border-t border-slate-700/50 pt-4">
+                    <div class="grid grid-cols-4 gap-2 text-center border-t border-slate-700/50 pt-4">
                         <div>
                             <p class="text-[10px] text-slate-400 uppercase mb-1">Swim</p>
-                            <p class="text-sm font-semibold text-accent-swim"><span id="week-swim">0.0</span> <span class="text-xs font-normal">km</span></p>
+                            <p class="text-sm font-semibold text-accent-swim"><span id="week-swim">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
                         </div>
                         <div class="border-l border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase mb-1">Bike</p>
-                            <p class="text-sm font-semibold text-accent-bike"><span id="week-bike">0.0</span> <span class="text-xs font-normal">km</span></p>
+                            <p class="text-sm font-semibold text-accent-bike"><span id="week-bike">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
                         </div>
                         <div class="border-l border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase mb-1">Run</p>
-                            <p class="text-sm font-semibold text-accent-run"><span id="week-run">0.0</span> <span class="text-xs font-normal">km</span></p>
+                            <p class="text-sm font-semibold text-accent-run"><span id="week-run">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                        </div>
+                        <div class="border-l border-slate-700/50">
+                            <p class="text-[10px] text-slate-400 uppercase mb-1">Strength</p>
+                            <p class="text-sm font-semibold text-emerald-400" id="week-strength">0m</p>
                         </div>
                     </div>
                 </div>
@@ -139,20 +149,51 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-3 gap-2 text-center border-t border-slate-700/50 pt-4">
+                    <div class="grid grid-cols-4 gap-2 text-center border-t border-slate-700/50 pt-4">
                         <div>
                             <p class="text-[10px] text-slate-400 uppercase mb-1">Swim</p>
-                            <p class="text-sm font-semibold text-accent-swim"><span id="month-swim">0.0</span> <span class="text-xs font-normal">km</span></p>
+                            <p class="text-sm font-semibold text-accent-swim"><span id="month-swim">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
                         </div>
                         <div class="border-l border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase mb-1">Bike</p>
-                            <p class="text-sm font-semibold text-accent-bike"><span id="month-bike">0.0</span> <span class="text-xs font-normal">km</span></p>
+                            <p class="text-sm font-semibold text-accent-bike"><span id="month-bike">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
                         </div>
                         <div class="border-l border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase mb-1">Run</p>
-                            <p class="text-sm font-semibold text-accent-run"><span id="month-run">0.0</span> <span class="text-xs font-normal">km</span></p>
+                            <p class="text-sm font-semibold text-accent-run"><span id="month-run">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                        </div>
+                        <div class="border-l border-slate-700/50">
+                            <p class="text-[10px] text-slate-400 uppercase mb-1">Strength</p>
+                            <p class="text-sm font-semibold text-emerald-400" id="month-strength">0m</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visualizations Section -->
+        <section class="glass-panel rounded-2xl p-6 shadow-xl w-full">
+            <h2 class="text-xl font-semibold mb-6 text-white flex items-center gap-2">
+                <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                Volume Tracking (KM)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-64">
+                <!-- Monthly Bar Graph -->
+                <div class="md:col-span-1 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 flex flex-col">
+                    <h3 class="text-xs text-slate-400 uppercase font-medium mb-2 text-center">This Month</h3>
+                    <div id="monthly-chart" class="flex-1 w-full"></div>
+                </div>
+                <!-- Yearly Stacked Bar Graph -->
+                <div class="md:col-span-2 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 flex flex-col">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xs text-slate-400 uppercase font-medium">Yearly Progression</h3>
+                        <div class="flex gap-2 text-[10px] text-slate-400">
+                            <span class="flex items-center gap-1"><div class="w-2 h-2 bg-sky-500 rounded-sm"></div>Swim</span>
+                            <span class="flex items-center gap-1"><div class="w-2 h-2 bg-yellow-500 rounded-sm"></div>Bike</span>
+                            <span class="flex items-center gap-1"><div class="w-2 h-2 bg-red-500 rounded-sm"></div>Run</span>
+                        </div>
+                    </div>
+                    <div id="yearly-chart" class="flex-1 w-full flex items-end gap-1 pb-2"></div>
                 </div>
             </div>
         </section>
@@ -180,12 +221,22 @@
                                     <option value="Swim">Swim</option>
                                     <option value="Bike" selected>Bike</option>
                                     <option value="Run">Run</option>
+                                    <option value="Strength">Strength</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Session Detail</label>
+                                <select id="subType" required class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-200">
+                                    <!-- Populated dynamically via JavaScript -->
                                 </select>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
+                            <div id="distance-container">
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Distance (km)</label>
                                 <input type="number" step="0.01" min="0" id="distance" required placeholder="e.g. 5.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all text-slate-200">
                             </div>
@@ -243,7 +294,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = 'triathlon-tracker-app';
@@ -263,6 +314,8 @@
         const ui = {
             authStatus: document.getElementById('auth-status'),
             authIndicator: document.getElementById('auth-indicator'),
+            authText: document.getElementById('auth-text'),
+            googleBtn: document.getElementById('google-btn'),
             form: document.getElementById('workout-form'),
             submitBtn: document.getElementById('submit-btn'),
             formMessage: document.getElementById('form-message'),
@@ -281,6 +334,21 @@
             monthSwim: document.getElementById('month-swim'),
             monthBike: document.getElementById('month-bike'),
             monthRun: document.getElementById('month-run'),
+            
+            // New UI Elements
+            subType: document.getElementById('subType'),
+            distanceContainer: document.getElementById('distance-container'),
+            yearlyChart: document.getElementById('yearly-chart'),
+            monthlyChart: document.getElementById('monthly-chart'),
+            weekStrength: document.getElementById('week-strength'),
+            monthStrength: document.getElementById('month-strength'),
+        };
+
+        const sportDetails = {
+            'Swim': ['Endurance', 'Intervals', 'Technique', 'Open Water', 'Recovery', 'Race'],
+            'Bike': ['Long Ride', 'Tempo Ride', 'Intervals', 'Recovery Ride', 'Indoor/Zwift', 'Race'],
+            'Run': ['Long Run', 'Tempo Run', 'Intervals', 'Track Session', 'Recovery Run', 'Trail', 'Race'],
+            'Strength': ['Heavy Lifting', 'Circuit', 'Mobility Work', 'Core', 'Plyometrics', 'Rehab']
         };
 
         async function initApp() {
@@ -291,23 +359,47 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Authenticate with Anonymous Sign-In for your custom Firebase project
-                try {
-                    await signInAnonymously(auth);
-                } catch (authError) {
-                    if (authError.code === 'auth/configuration-not-found' || authError.code === 'auth/operation-not-allowed') {
-                        throw new Error("Please enable 'Anonymous' sign-in in your Firebase Console (Build > Authentication > Sign-in method).");
-                    }
-                    throw authError;
-                }
+                document.getElementById('type').addEventListener('change', updateSubTypes);
+                updateSubTypes(); // Initialize sub types on load
 
-                if (!auth.currentUser) throw new Error("Authentication failed");
-                
-                userId = auth.currentUser.uid;
-                setAuthStatus('Connected', 'bg-green-500');
-                
-                document.getElementById('date').valueAsDate = new Date();
-                setupRealtimeListener();
+                ui.googleBtn.addEventListener('click', async () => {
+                    try {
+                        const provider = new GoogleAuthProvider();
+                        await signInWithPopup(auth, provider);
+                    } catch (error) {
+                        console.error("Google Auth Error:", error);
+                        showMessage("Failed to sign in with Google.", "error");
+                    }
+                });
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        
+                        if (user.isAnonymous) {
+                            setAuthStatus('Guest Mode', 'bg-yellow-500');
+                            ui.googleBtn.classList.remove('hidden'); // Show upgrade button
+                        } else {
+                            setAuthStatus(user.displayName || 'Google User', 'bg-green-500');
+                            ui.googleBtn.classList.add('hidden'); // Hide button if already logged in
+                        }
+                        
+                        document.getElementById('date').valueAsDate = new Date();
+                        
+                        if (unsubscribe) unsubscribe();
+                        setupRealtimeListener();
+
+                    } else {
+                        // Ensure Google button is visible even if anonymous login fails
+                        ui.googleBtn.classList.remove('hidden'); 
+                        try {
+                            await signInAnonymously(auth);
+                        } catch (authError) {
+                            setAuthStatus('Sign in required', 'bg-yellow-500');
+                            console.warn("Anonymous sign-in blocked by browser.");
+                        }
+                    }
+                });
 
             } catch (error) {
                 console.error("Initialization Error:", error);
@@ -321,9 +413,35 @@
         }
 
         function setAuthStatus(text, colorClass) {
-            ui.authStatus.childNodes[1].textContent = ' ' + text;
+            ui.authText.textContent = text;
             ui.authIndicator.className = `w-2 h-2 rounded-full ${colorClass}`;
-            if(text === 'Connected') ui.authIndicator.classList.remove('animate-pulse');
+            if(colorClass !== 'bg-slate-500') ui.authIndicator.classList.remove('animate-pulse');
+        }
+
+        function updateSubTypes() {
+            const type = document.getElementById('type').value;
+            const subTypeSelect = ui.subType;
+            const distContainer = ui.distanceContainer;
+            const distInput = document.getElementById('distance');
+            
+            if (type === 'Strength') {
+                distContainer.classList.add('hidden');
+                distInput.removeAttribute('required');
+                distInput.value = '0';
+            } else {
+                distContainer.classList.remove('hidden');
+                distInput.setAttribute('required', 'true');
+            }
+
+            subTypeSelect.innerHTML = '';
+            if (sportDetails[type]) {
+                sportDetails[type].forEach(sub => {
+                    const opt = document.createElement('option');
+                    opt.value = sub;
+                    opt.textContent = sub;
+                    subTypeSelect.appendChild(opt);
+                });
+            }
         }
 
         function setupRealtimeListener() {
@@ -341,6 +459,7 @@
                 
                 renderDashboard();
                 updateInsights();
+                renderCharts();
             }, (error) => {
                 console.error("Firestore Listen Error:", error);
                 showMessage("Error loading data from cloud.", "error");
@@ -380,7 +499,8 @@
             const icons = {
                 'Swim': '<svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path></svg>',
                 'Bike': '<svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V6m0 0l-3 3m3-3l3 3m-9 9h12"></path></svg>',
-                'Run': '<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>'
+                'Run': '<svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>',
+                'Strength': '<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M5 10V8a2 2 0 012-2h10a2 2 0 012 2v2M7 10v4a2 2 0 002 2h6a2 2 0 002-2v-4M9 14v4M15 14v4"></path></svg>'
             };
             return icons[type] || icons['Run'];
         }
@@ -389,7 +509,8 @@
              const colors = {
                 'Swim': { border: 'border-sky-500/30', bg: 'bg-sky-500/10' },
                 'Bike': { border: 'border-yellow-500/30', bg: 'bg-yellow-500/10' },
-                'Run': { border: 'border-red-500/30', bg: 'bg-red-500/10' }
+                'Run': { border: 'border-red-500/30', bg: 'bg-red-500/10' },
+                'Strength': { border: 'border-emerald-500/30', bg: 'bg-emerald-500/10' }
             };
             return colors[type] || colors['Run'];
         }
@@ -406,8 +527,8 @@
             startOfWeek.setDate(now.getDate() - dayOfWeek + 1);
             startOfWeek.setHours(0,0,0,0);
 
-            let week = { time: 0, load: 0, swim: 0, bike: 0, run: 0 };
-            let month = { time: 0, load: 0, swim: 0, bike: 0, run: 0 };
+            let week = { time: 0, load: 0, swim: 0, bike: 0, run: 0, strength: 0 };
+            let month = { time: 0, load: 0, swim: 0, bike: 0, run: 0, strength: 0 };
 
             workoutsData.forEach(w => {
                 // Parse local date from "YYYY-MM-DD"
@@ -426,6 +547,7 @@
                     if (w.type === 'Swim') month.swim += dist;
                     if (w.type === 'Bike') month.bike += dist;
                     if (w.type === 'Run') month.run += dist;
+                    if (w.type === 'Strength') month.strength += dur;
                 }
 
                 // Week Check
@@ -435,6 +557,7 @@
                     if (w.type === 'Swim') week.swim += dist;
                     if (w.type === 'Bike') week.bike += dist;
                     if (w.type === 'Run') week.run += dist;
+                    if (w.type === 'Strength') week.strength += dur;
                 }
             });
 
@@ -444,12 +567,95 @@
             ui.weekSwim.textContent = week.swim.toFixed(1);
             ui.weekBike.textContent = week.bike.toFixed(1);
             ui.weekRun.textContent = week.run.toFixed(1);
+            if(ui.weekStrength) ui.weekStrength.textContent = formatDuration(week.strength);
 
             ui.monthTime.textContent = formatDuration(month.time);
             ui.monthLoad.textContent = Math.round(month.load);
             ui.monthSwim.textContent = month.swim.toFixed(1);
             ui.monthBike.textContent = month.bike.toFixed(1);
             ui.monthRun.textContent = month.run.toFixed(1);
+            if(ui.monthStrength) ui.monthStrength.textContent = formatDuration(month.strength);
+        }
+
+        function renderCharts() {
+            if (!ui.yearlyChart || !ui.monthlyChart) return;
+            
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+            
+            // Prepare arrays to hold chart data
+            const yearData = Array(12).fill(0).map(() => ({ Swim: 0, Bike: 0, Run: 0, total: 0 }));
+            const monthData = { Swim: 0, Bike: 0, Run: 0 };
+            
+            workoutsData.forEach(w => {
+                const [y, m, d] = w.date.split('-');
+                if (!y || !m || !d) return;
+                const localDate = new Date(y, m - 1, d);
+                const dist = parseFloat(w.distance) || 0;
+                
+                // Only graph Distance for Swim/Bike/Run (Exclude Strength from KM charts)
+                if (localDate.getFullYear() === currentYear && w.type !== 'Strength') {
+                    const monthIdx = localDate.getMonth();
+                    yearData[monthIdx][w.type] += dist;
+                    yearData[monthIdx].total += dist;
+                    
+                    if (monthIdx === currentMonth) {
+                        monthData[w.type] += dist;
+                    }
+                }
+            });
+
+            // Render Yearly Stacked Chart
+            const maxYearMonth = Math.max(...yearData.map(d => d.total), 1);
+            ui.yearlyChart.innerHTML = '';
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            
+            yearData.forEach((data, i) => {
+                const heightPct = (data.total / maxYearMonth) * 100;
+                const swimPct = data.total > 0 ? (data.Swim / data.total) * 100 : 0;
+                const bikePct = data.total > 0 ? (data.Bike / data.total) * 100 : 0;
+                const runPct = data.total > 0 ? (data.Run / data.total) * 100 : 0;
+
+                ui.yearlyChart.innerHTML += `
+                    <div class="flex flex-col items-center justify-end h-full gap-1 flex-1 group relative cursor-pointer">
+                        <div class="w-full flex flex-col justify-end w-[85%] rounded-sm overflow-hidden bg-slate-800/30 border border-slate-700/30" style="height: ${Math.max(heightPct, 2)}%;">
+                            <div style="height: ${runPct}%" class="bg-red-500/80 group-hover:bg-red-400 transition-all w-full"></div>
+                            <div style="height: ${bikePct}%" class="bg-yellow-500/80 group-hover:bg-yellow-400 transition-all w-full"></div>
+                            <div style="height: ${swimPct}%" class="bg-sky-500/80 group-hover:bg-sky-400 transition-all w-full"></div>
+                        </div>
+                        <span class="text-[9px] text-slate-500 mt-1">${months[i]}</span>
+                        
+                        <!-- Tooltip -->
+                        <div class="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 border border-slate-700 text-xs rounded p-2 pointer-events-none z-10 w-28 text-center shadow-xl">
+                            <div class="font-bold text-white border-b border-slate-700 pb-1 mb-1">${months[i]} Total</div>
+                            <div class="text-red-400 text-[10px]">Run: ${data.Run.toFixed(1)}km</div>
+                            <div class="text-yellow-400 text-[10px]">Bike: ${data.Bike.toFixed(1)}km</div>
+                            <div class="text-sky-400 text-[10px]">Swim: ${data.Swim.toFixed(1)}km</div>
+                            <div class="text-white mt-1 font-bold text-sm">${data.total.toFixed(1)} km</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Render Monthly Side-by-Side Chart
+            const maxMonth = Math.max(monthData.Swim, monthData.Bike, monthData.Run, 1);
+            ui.monthlyChart.innerHTML = `
+                <div class="flex items-end h-full gap-3 w-full justify-around pt-4 pb-2 relative">
+                    ${['Swim', 'Bike', 'Run'].map(sport => {
+                        const val = monthData[sport];
+                        const pct = Math.max((val / maxMonth) * 100, 2);
+                        const color = sport === 'Swim' ? 'bg-sky-500' : (sport === 'Bike' ? 'bg-yellow-500' : 'bg-red-500');
+                        return `
+                        <div class="flex flex-col items-center justify-end h-full w-1/3 group relative cursor-pointer">
+                            <div class="text-[10px] text-slate-200 font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-full mb-1">${val.toFixed(1)}k</div>
+                            <div class="${color}/80 group-hover:${color} transition-all rounded-t-sm w-3/4" style="height: ${pct}%;"></div>
+                            <span class="text-[10px] text-slate-400 mt-2 uppercase tracking-wider">${sport}</span>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
         }
 
         function renderDashboard() {
@@ -484,7 +690,7 @@
                                 ${getSportIcon(workout.type)}
                             </div>
                             <div>
-                                <h3 class="text-slate-100 font-semibold">${workout.type} Session</h3>
+                                <h3 class="text-slate-100 font-semibold">${workout.type} <span class="text-slate-400 font-normal text-sm">${workout.subType ? `| ${workout.subType}` : ''}</span></h3>
                                 <p class="text-xs text-slate-400">${dateStr}</p>
                             </div>
                         </div>
@@ -497,18 +703,22 @@
                     </div>
                     
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                        ${workout.type !== 'Strength' ? `
                         <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase">Distance</p>
                             <p class="font-medium text-slate-200">${parseFloat(workout.distance).toFixed(2)} km</p>
                         </div>
+                        ` : ''}
                         <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase">Duration</p>
                             <p class="font-medium text-slate-200">${workout.duration} min</p>
                         </div>
+                        ${workout.type !== 'Strength' ? `
                         <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase">${workout.type === 'Bike' ? 'Speed' : 'Pace'}</p>
                             <p class="font-medium text-slate-200">${paceStr}</p>
                         </div>
+                        ` : ''}
                         <div class="bg-slate-900/50 p-2 rounded border border-slate-700/50">
                             <p class="text-[10px] text-slate-400 uppercase">Heart Rate</p>
                             <p class="font-medium text-slate-200">${workout.heartRate ? workout.heartRate + ' bpm' : '--'}</p>
@@ -541,7 +751,8 @@
             const newWorkout = {
                 date: document.getElementById('date').value,
                 type: document.getElementById('type').value,
-                distance: parseFloat(document.getElementById('distance').value),
+                subType: document.getElementById('subType').value,
+                distance: parseFloat(document.getElementById('distance').value) || 0,
                 duration: parseFloat(document.getElementById('duration').value),
                 heartRate: parseInt(document.getElementById('heartRate').value) || null,
                 intensity: parseInt(document.getElementById('intensity').value),
