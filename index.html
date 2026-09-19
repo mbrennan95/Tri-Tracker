@@ -1022,7 +1022,8 @@ Strength: ${formatDuration(currentWeekStats.strength)}
 Keep the tone professional, supportive, and specific to a multi-sport triathlete. Do not use markdown styling like asterisks, just plain paragraphs.`;
 
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+                // UPDATE: Switched to Google's latest stable 2026 model: gemini-3.5-flash
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
