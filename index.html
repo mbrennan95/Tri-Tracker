@@ -995,16 +995,14 @@ Enter your API key and click "Analyze My Week" to generate your custom training 
                 return;
             }
             
-            // Smart check to ensure the key is a valid Gemini key format (AIza or the new AQ. format)
-            if (!apiKey.startsWith("AIza") && !apiKey.startsWith("AQ.")) {
-                ui.aiContent.innerHTML = `<span class="text-red-400"><strong>Invalid API Key Format.</strong><br><br>The key you entered starts with "${apiKey.substring(0, 3)}...".<br>Google Gemini API keys start with "AIza" or "AQ.".<br><br>Please check your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-purple-400">Google AI Studio</a>.</span>`;
-                return;
-            }
-            
             // Save key to local storage so user doesn't have to paste it every time
             localStorage.setItem('tri_tracker_ai_key', apiKey);
             
-            if (!currentWeekStats) return;
+            // Friendly alert if no workouts exist for the week yet
+            if (!currentWeekStats || (currentWeekStats.load === 0 && currentWeekStats.time === 0)) {
+                ui.aiContent.innerHTML = `<span class="text-yellow-400">Coach needs some data! Please log at least one workout this week to get custom advice.</span>`;
+                return;
+            }
 
             ui.aiLoading.classList.remove('hidden');
             ui.btnGetAdvice.disabled = true;
@@ -1024,8 +1022,7 @@ Strength: ${formatDuration(currentWeekStats.strength)}
 Keep the tone professional, supportive, and specific to a multi-sport triathlete. Do not use markdown styling like asterisks, just plain paragraphs.`;
 
             try {
-                // Using gemini-1.5-flash as it is extremely fast and completely free for this use case
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1043,7 +1040,7 @@ Keep the tone professional, supportive, and specific to a multi-sport triathlete
 
             } catch (error) {
                 console.error("AI Error:", error);
-                ui.aiContent.innerHTML = `<span class="text-red-400">Failed to get advice: ${error.message}.<br><br>Please double check your API key is correct.</span>`;
+                ui.aiContent.innerHTML = `<span class="text-red-400"><strong>API Error:</strong> ${error.message}<br><br>Please verify your API key at <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-purple-400">Google AI Studio</a>.</span>`;
             } finally {
                 ui.aiLoading.classList.add('hidden');
                 ui.btnGetAdvice.disabled = false;
