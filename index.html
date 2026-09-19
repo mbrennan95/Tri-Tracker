@@ -96,80 +96,88 @@
             
             <!-- Top Dashboard Insights -->
             <section class="glass-panel rounded-2xl p-6 shadow-xl w-full">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-                            <p class="text-xs text-slate-400 uppercase">Total Time</p>
-                            <p class="text-xl font-bold text-white" id="week-time">0h 0m</p>
+                    <!-- Weekly Load -->
+                    <div>
+                        <h3 class="text-lg font-medium text-slate-200 mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            This Week
+                        </h3>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                                <p class="text-xs text-slate-400 uppercase">Total Time</p>
+                                <p class="text-xl font-bold text-white" id="week-time">0h 0m</p>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                                <p class="text-xs text-slate-400 uppercase">Training Load</p>
+                                <p class="text-xl font-bold text-indigo-400" id="week-load">0</p>
+                                <p class="text-[10px] text-slate-500">Duration × RPE</p>
+                            </div>
                         </div>
-                        <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-                            <p class="text-xs text-slate-400 uppercase">Training Load</p>
-                            <p class="text-xl font-bold text-indigo-400" id="week-load">0</p>
-                            <p class="text-[10px] text-slate-500">Duration × RPE</p>
+                        
+                        <div class="grid grid-cols-4 gap-2 text-center border-t border-slate-700/50 pt-4">
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Swim</p>
+                                <p class="text-sm font-semibold text-accent-swim"><span id="week-swim">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                            </div>
+                            <div class="border-l border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Bike</p>
+                                <p class="text-sm font-semibold text-accent-bike"><span id="week-bike">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                            </div>
+                            <div class="border-l border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Run</p>
+                                <p class="text-sm font-semibold text-accent-run"><span id="week-run">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                            </div>
+                            <div class="border-l border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Strength</p>
+                                <p class="text-sm font-semibold text-emerald-400" id="week-strength">0m</p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-4 gap-2 text-center border-t border-slate-700/50 pt-4">
-                        <div>
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Swim</p>
-                            <p class="text-sm font-semibold text-accent-swim"><span id="week-swim">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
-                        </div>
-                        <div class="border-l border-slate-700/50">
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Bike</p>
-                            <p class="text-sm font-semibold text-accent-bike"><span id="week-bike">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
-                        </div>
-                        <div class="border-l border-slate-700/50">
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Run</p>
-                            <p class="text-sm font-semibold text-accent-run"><span id="week-run">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
-                        </div>
-                        <div class="border-l border-slate-700/50">
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Strength</p>
-                            <p class="text-sm font-semibold text-emerald-400" id="week-strength">0m</p>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Monthly Load -->
-                <div class="insight-card rounded-xl p-5 shadow-lg relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
-                    <h3 class="text-lg font-medium text-slate-200 mb-4 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        Monthly Load
-                    </h3>
-                    
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-                            <p class="text-xs text-slate-400 uppercase">Total Time</p>
-                            <p class="text-xl font-bold text-white" id="month-time">0h 0m</p>
+                    <!-- Monthly Load -->
+                    <div class="insight-card rounded-xl p-5 shadow-lg relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                        <h3 class="text-lg font-medium text-slate-200 mb-4 flex items-center gap-2">
+                            <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            Monthly Load
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                                <p class="text-xs text-slate-400 uppercase">Total Time</p>
+                                <p class="text-xl font-bold text-white" id="month-time">0h 0m</p>
+                            </div>
+                            <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
+                                <p class="text-xs text-slate-400 uppercase">Training Load</p>
+                                <p class="text-xl font-bold text-purple-400" id="month-load">0</p>
+                                <p class="text-[10px] text-slate-500">Duration × RPE</p>
+                            </div>
                         </div>
-                        <div class="bg-slate-800/50 rounded-lg p-3 border border-slate-700/50">
-                            <p class="text-xs text-slate-400 uppercase">Training Load</p>
-                            <p class="text-xl font-bold text-purple-400" id="month-load">0</p>
-                            <p class="text-[10px] text-slate-500">Duration × RPE</p>
+                        
+                        <div class="grid grid-cols-4 gap-2 text-center border-t border-slate-700/50 pt-4">
+                            <div>
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Swim</p>
+                                <p class="text-sm font-semibold text-accent-swim"><span id="month-swim">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                            </div>
+                            <div class="border-l border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Bike</p>
+                                <p class="text-sm font-semibold text-accent-bike"><span id="month-bike">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                            </div>
+                            <div class="border-l border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Run</p>
+                                <p class="text-sm font-semibold text-accent-run"><span id="month-run">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
+                            </div>
+                            <div class="border-l border-slate-700/50">
+                                <p class="text-[10px] text-slate-400 uppercase mb-1">Strength</p>
+                                <p class="text-sm font-semibold text-emerald-400" id="month-strength">0m</p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="grid grid-cols-4 gap-2 text-center border-t border-slate-700/50 pt-4">
-                        <div>
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Swim</p>
-                            <p class="text-sm font-semibold text-accent-swim"><span id="month-swim">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
-                        </div>
-                        <div class="border-l border-slate-700/50">
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Bike</p>
-                            <p class="text-sm font-semibold text-accent-bike"><span id="month-bike">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
-                        </div>
-                        <div class="border-l border-slate-700/50">
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Run</p>
-                            <p class="text-sm font-semibold text-accent-run"><span id="month-run">0.0</span> <span class="text-[10px] font-normal text-slate-500">km</span></p>
-                        </div>
-                        <div class="border-l border-slate-700/50">
-                            <p class="text-[10px] text-slate-400 uppercase mb-1">Strength</p>
-                            <p class="text-sm font-semibold text-emerald-400" id="month-strength">0m</p>
-                        </div>
-                    </div>
+
                 </div>
-            </div>
-        </section>
+            </section>
 
         <!-- Visualizations Section -->
         <section class="glass-panel rounded-2xl p-6 shadow-xl w-full">
@@ -953,9 +961,9 @@ Enter your API key and click "Analyze My Week" to generate your custom training 
                         const dist = parseFloat(w.distance);
                         const dur = parseFloat(w.duration);
                         
-                        // Look for sessions that are at least 90% of the target distance
-                        if (dist >= targetDist * 0.9) {
-                            // Calculate equivalent time for the exact target distance based on pace
+                        // Only calculate if the session distance is equal to or greater than the target
+                        if (dist >= targetDist) {
+                            // Average out the time based on the overall pace of that session
                             const pace = dur / dist;
                             const estimatedTime = pace * targetDist;
                             if (estimatedTime < bestTime) bestTime = estimatedTime;
@@ -983,6 +991,12 @@ Enter your API key and click "Analyze My Week" to generate your custom training 
             const apiKey = ui.aiApiKey.value.trim();
             if (!apiKey) {
                 alert("Please paste your Gemini API Key first!");
+                return;
+            }
+            
+            // Smart check to ensure the key is a valid Gemini key format (AIza or the new AQ. format)
+            if (!apiKey.startsWith("AIza") && !apiKey.startsWith("AQ.")) {
+                ui.aiContent.innerHTML = `<span class="text-red-400"><strong>Invalid API Key Format.</strong><br><br>The key you entered starts with "${apiKey.substring(0, 3)}...".<br>Google Gemini API keys start with "AIza" or "AQ.".<br><br>Please check your key from <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline text-purple-400">Google AI Studio</a>.</span>`;
                 return;
             }
             
