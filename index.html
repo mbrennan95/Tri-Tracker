@@ -1,333 +1,366 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TriSmart - Triathlon Tracker</title>
-
+    <title>TriSmart - Athlete Dashboard</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        darkbg: '#0f172a',
-                        cardbg: '#1e293b',
-                        accent: { swim: '#0ea5e9', bike: '#eab308', run: '#ef4444', strength: '#10b981' }
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] }
-                }
-            }
-        }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        .loading-spinner {
-            border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #0ea5e9; border-radius: 50%;
-            width: 24px; height: 24px; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .toast {
-            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
-            transform: translateY(100%); opacity: 0;
-        }
-        .toast.show { transform: translateY(0); opacity: 1; }
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        #toast { transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease; }
+        #toast.show { transform: translateY(0); opacity: 1; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center overflow-x-hidden pb-12">
+<body class="h-full min-h-screen bg-slate-950 text-slate-100 antialiased flex flex-col">
 
-    <header class="w-full max-w-7xl flex justify-between items-center p-4 md:p-8">
-        <div>
-            <h1 class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-400 to-green-400 flex items-center gap-3">
-                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                TriSmart
-            </h1>
-            <p class="text-slate-400 mt-1 text-sm">Elite Multisport Analytics</p>
-        </div>
-        <div class="flex items-center gap-4">
-            <button id="login-btn" class="px-4 py-2 bg-white text-slate-900 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm flex items-center gap-2">
-                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                Sign in with Google
-            </button>
-            <div id="user-info" class="hidden flex items-center gap-4">
-                <span id="user-name" class="text-sm text-slate-300 font-medium"></span>
-                <button id="logout-btn" class="px-3 py-1.5 bg-slate-800 text-slate-400 hover:text-white rounded border border-slate-700 transition-colors text-xs">Sign Out</button>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-5 right-5 z-50 flex items-center gap-3 bg-slate-900 border border-slate-700 px-4 py-3 rounded-xl shadow-2xl opacity-0 -translate-y-8 pointer-events-none">
+        <div id="toast-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
+        <span id="toast-msg" class="text-sm font-medium text-slate-200"></span>
+    </div>
+
+    <!-- Header / Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-black text-white text-xl shadow-lg shadow-blue-500/20">⚡</div>
+                <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">TriSmart</h1>
+            </div>
+
+            <!-- Auth Controls -->
+            <div class="flex items-center gap-3">
+                <div id="user-info" class="hidden items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
+                    <span id="user-name" class="text-xs font-semibold text-slate-300"></span>
+                </div>
+                <button id="login-btn" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all shadow-lg shadow-blue-600/20">Sign In with Google</button>
+                <button id="logout-btn" class="text-slate-400 hover:text-white px-3 py-1.5 text-xs font-medium transition-colors">Sign Out</button>
             </div>
         </div>
     </header>
 
-    <!-- Initial Welcome State (Logged Out) -->
-    <div id="logged-out-view" class="flex-1 flex flex-col items-center justify-center p-8 w-full max-w-2xl text-center">
-        <div class="glass-panel p-8 rounded-2xl">
-            <h2 class="text-2xl font-semibold mb-4">Welcome to TriSmart</h2>
-            <p class="text-slate-400 mb-8 leading-relaxed">Sign in with Google to access your personalized training dashboard, plan upcoming sessions, calculate personal bests, and get AI-driven coaching insights.</p>
-        </div>
-    </div>
-
-    <!-- Main App Container (Logged In) -->
-    <div id="logged-in-view" class="w-full max-w-7xl px-4 md:px-8 hidden flex-col gap-6">
-
-        <!-- Tab Navigation -->
-        <div class="flex gap-2 overflow-x-auto pb-2 border-b border-slate-700/50">
-            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm transition-colors shadow-lg">Dashboard</button>
-            <button onclick="switchTab('plan')" id="tab-btn-plan" class="px-5 py-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white font-medium text-sm transition-colors">Planner</button>
-            <button onclick="switchTab('pbs')" id="tab-btn-pbs" class="px-5 py-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white font-medium text-sm transition-colors">Personal Bests</button>
-            <button onclick="switchTab('ai')" id="tab-btn-ai" class="px-5 py-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white font-medium text-sm transition-colors flex items-center gap-2">
-                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                AI Coach
-            </button>
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col">
+        
+        <!-- Logged Out View -->
+        <div id="logged-out-view" class="flex-1 flex flex-col items-center justify-center text-center py-20">
+            <div class="w-16 h-16 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 text-2xl mb-4">🏆</div>
+            <h2 class="text-2xl font-bold text-white mb-2">Track Your Triathlon Journey</h2>
+            <p class="text-slate-400 max-w-md text-sm mb-6">Log swims, rides, runs, and strength sessions. Plan future blocks and let AI coach your week.</p>
         </div>
 
-        <!-- DASHBOARD TAB -->
-        <div id="tab-dashboard" class="flex flex-col gap-6 w-full">
-
-            <!-- Charts Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div class="glass-panel p-5 rounded-2xl shadow-xl col-span-1 flex flex-col h-[300px]">
-                    <h3 class="text-sm font-semibold text-slate-300 mb-2">Yearly Volume (KM)</h3>
-                    <div class="flex-1 relative w-full h-full"><canvas id="chart-yearly"></canvas></div>
-                </div>
-                <div class="glass-panel p-5 rounded-2xl shadow-xl col-span-1 flex flex-col h-[300px]">
-                    <h3 class="text-sm font-semibold text-slate-300 mb-2">12-Week Load Progression</h3>
-                    <div class="flex-1 relative w-full h-full"><canvas id="chart-load"></canvas></div>
-                </div>
-                <div class="glass-panel p-5 rounded-2xl shadow-xl col-span-1 flex flex-col h-[300px]">
-                    <h3 class="text-sm font-semibold text-slate-300 mb-2">Pace Progression (Long Efforts)</h3>
-                    <div class="flex-1 relative w-full h-full"><canvas id="chart-pace"></canvas></div>
-                </div>
+        <!-- Logged In View -->
+        <div id="logged-in-view" class="hidden flex-col gap-6">
+            
+            <!-- Tab Navigation Bar -->
+            <div class="flex items-center gap-2 p-1 bg-slate-900 border border-slate-800 rounded-2xl w-fit">
+                <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all">Dashboard</button>
+                <button id="tab-btn-plan" onclick="switchTab('plan')" class="bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all">Planner</button>
+                <button id="tab-btn-pbs" onclick="switchTab('pbs')" class="bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all">Personal Bests</button>
+                <button id="tab-btn-ai" onclick="switchTab('ai')" class="bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5">
+                    <span>✨ AI Coach</span>
+                </button>
             </div>
 
-            <!-- Input & Feed Row -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Log Form -->
-                <div class="glass-panel p-6 rounded-2xl shadow-xl lg:col-span-1 relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-green-500"></div>
-                    <h2 class="text-lg font-semibold mb-5 text-white flex items-center gap-2">Log Workout</h2>
-
-                    <form id="workout-form" class="space-y-4">
+            <!-- TAB 1: DASHBOARD -->
+            <div id="tab-dashboard" class="flex flex-col gap-6">
+                
+                <!-- Add Workout Form -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-blue-500"></span> Log Workout Session
+                    </h3>
+                    <form id="workout-form" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Date</label>
-                            <input type="date" id="w-date" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Date</label>
+                            <input type="date" id="w-date" required class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Sport</label>
-                                <select id="w-sport" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
-                                    <option value="Swim">Swim</option>
-                                    <option value="Bike" selected>Bike</option>
-                                    <option value="Run">Run</option>
-                                    <option value="Strength">Strength</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Sub-Type</label>
-                                <select id="w-type" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500"></select>
-                            </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Sport</label>
+                            <select id="w-sport" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                                <option value="Swim">Swim</option>
+                                <option value="Bike">Bike</option>
+                                <option value="Run">Run</option>
+                                <option value="Strength">Strength</option>
+                            </select>
                         </div>
-
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Type</label>
+                            <select id="w-type" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500"></select>
+                        </div>
                         <div id="w-dist-container">
-                            <label class="block text-xs text-slate-400 mb-1">Distance (km)</label>
-                            <input type="number" step="0.01" min="0" id="w-distance" placeholder="0.00" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Distance (km)</label>
+                            <input type="number" step="0.01" id="w-distance" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
                         </div>
-
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Duration</label>
+                        
+                        <!-- Duration Inputs -->
+                        <div class="sm:col-span-2">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Duration</label>
                             <div class="grid grid-cols-3 gap-2">
-                                <input type="number" id="w-hrs" min="0" placeholder="HH" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 text-center">
-                                <input type="number" id="w-mins" min="0" max="59" placeholder="MM" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 text-center">
-                                <input type="number" id="w-secs" min="0" max="59" placeholder="SS" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 text-center">
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Avg HR</label>
-                                <input type="number" min="0" id="w-hr" placeholder="bpm" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">RPE (1-10)</label>
-                                <input type="number" min="1" max="10" id="w-rpe" required placeholder="Scale 1-10" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                                <input type="number" id="w-hrs" placeholder="Hrs" min="0" class="bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 text-center">
+                                <input type="number" id="w-mins" placeholder="Mins" min="0" max="59" class="bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 text-center">
+                                <input type="number" id="w-secs" placeholder="Secs" min="0" max="59" class="bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500 text-center">
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Notes</label>
-                            <textarea id="w-notes" rows="2" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 resize-none"></textarea>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Avg HR (bpm)</label>
+                            <input type="number" id="w-hr" placeholder="e.g. 152" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">RPE (1-10 Effort)</label>
+                            <input type="number" id="w-rpe" min="1" max="10" required placeholder="1-10" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
                         </div>
 
-                        <button type="submit" id="w-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded transition-colors text-sm">Save Session</button>
+                        <div class="sm:col-span-2 lg:col-span-3">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Notes</label>
+                            <input type="text" id="w-notes" placeholder="Interval details, felt conditions, gear..." class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
+                        </div>
+
+                        <div class="sm:col-span-2 lg:col-span-1 flex items-end">
+                            <button type="submit" id="w-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2 rounded-xl text-sm transition-all shadow-lg shadow-blue-600/20">Save Session</button>
+                        </div>
                     </form>
                 </div>
 
-                <!-- Feed -->
-                <div class="glass-panel p-6 rounded-2xl shadow-xl lg:col-span-2 flex flex-col min-h-[600px]">
-                    <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-700/50 pb-4 gap-3">
-                        <h2 class="text-lg font-semibold text-white">Training Feed</h2>
+                <!-- Analytics Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col h-64">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Yearly Volume (km)</h4>
+                        <div class="flex-1 relative"><canvas id="chart-yearly"></canvas></div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col h-64">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Weekly Load (Mins × RPE)</h4>
+                        <div class="flex-1 relative"><canvas id="chart-load"></canvas></div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col h-64">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Long Run Pace (>10k)</h4>
+                        <div class="flex-1 relative"><canvas id="chart-pace"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Feed Filters & Recent Activity List -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800">
+                        <h3 class="text-sm font-semibold text-slate-300">Activity History</h3>
                         <div class="flex flex-wrap items-center gap-3">
-                            <input type="text" id="f-search" placeholder="Search notes..." class="bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-xs text-white outline-none w-32 md:w-40">
-                            <select id="f-sport" class="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white outline-none">
+                            <input type="text" id="f-search" placeholder="Search notes..." class="bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none">
+                            <select id="f-sport" class="bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-1.5 text-xs text-slate-100 focus:outline-none">
                                 <option value="All">All Sports</option>
                                 <option value="Swim">Swim</option>
                                 <option value="Bike">Bike</option>
                                 <option value="Run">Run</option>
                                 <option value="Strength">Strength</option>
                             </select>
-                            <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer select-none">
-                                <input type="checkbox" id="f-alltime" class="accent-blue-500 w-3.5 h-3.5"> Show All-Time
+                            <label class="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+                                <input type="checkbox" id="f-alltime" class="rounded bg-slate-800 border-slate-700 text-blue-600 focus:ring-0">
+                                Show All-Time
                             </label>
                         </div>
                     </div>
-                    <div id="feed-list" class="flex-1 overflow-y-auto space-y-3 pr-2">
-                        <div class="flex flex-col items-center justify-center h-full text-slate-400">
-                            <div class="loading-spinner mb-3"></div>
-                            <p class="text-sm">Loading feed...</p>
-                        </div>
-                    </div>
+                    <div id="feed-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
                 </div>
-            </div>
-        </div>
 
-        <!-- PLANNER TAB -->
-        <div id="tab-plan" class="hidden flex-col gap-6 w-full">
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            </div>
+
+            <!-- TAB 2: PLANNER -->
+            <div id="tab-plan" class="hidden flex-col gap-6">
                 <!-- Add Plan Form -->
-                <div class="glass-panel p-6 rounded-2xl shadow-xl lg:col-span-1 h-fit">
-                    <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Schedule Session</h3>
-                    <form id="plan-form" class="space-y-4">
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Date</label>
-                            <input type="date" id="p-date" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Sport</label>
-                            <select id="p-sport" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
-                                <option value="Swim">Swim</option><option value="Bike">Bike</option><option value="Run">Run</option><option value="Strength">Strength</option>
-                            </select>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Est. Dist (km)</label>
-                                <input type="number" step="0.1" min="0" id="p-dist" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs text-slate-400 mb-1">Est. Dur (m)</label>
-                                <input type="number" min="0" id="p-dur" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Target RPE (1-10)</label>
-                            <input type="number" min="1" max="10" id="p-rpe" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs text-slate-400 mb-1">Focus</label>
-                            <input type="text" id="p-focus" placeholder="e.g. Intervals" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
-                        </div>
-                        <button type="submit" id="p-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded transition-colors text-sm">Add to Plan</button>
-                    </form>
-                </div>
-
-                <!-- Calendar View -->
-                <div class="glass-panel rounded-2xl shadow-xl lg:col-span-3 flex flex-col overflow-hidden min-h-[600px]">
-                    <div class="flex justify-between items-center p-4 border-b border-slate-700/50 bg-slate-800/40">
-                        <button onclick="calMove(-1)" class="p-2 hover:bg-slate-700 rounded text-slate-400 hover:text-white transition-colors border border-slate-600">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                        </button>
-                        <h3 id="cal-month" class="text-lg font-bold text-white tracking-wider">Month Year</h3>
-                        <button onclick="calMove(1)" class="p-2 hover:bg-slate-700 rounded text-slate-400 hover:text-white transition-colors border border-slate-600">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </button>
+                <form id="plan-form" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-xl">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Start Date</label>
+                        <input type="date" id="p-date" required class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Sport</label>
+                        <select id="p-sport" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
+                            <option value="Swim">Swim</option>
+                            <option value="Bike">Bike</option>
+                            <option value="Run">Run</option>
+                            <option value="Strength">Strength</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Time of Day</label>
+                        <select id="p-time" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
+                            <option value="Morning">Morning</option>
+                            <option value="Lunch">Lunch</option>
+                            <option value="Evening">Evening</option>
+                        </select>
                     </div>
 
-                    <div class="grid grid-cols-7 border-b border-slate-700/50 bg-slate-800/20">
-                        <div class="py-2 text-center text-xs font-semibold text-slate-400">SUN</div>
-                        <div class="py-2 text-center text-xs font-semibold text-slate-400">MON</div>
-                        <div class="py-2 text-center text-xs font-semibold text-slate-400">TUE</div>
-                        <div class="py-2 text-center text-xs font-semibold text-slate-400">WED</div>
-                        <div class="py-2 text-center text-xs font-semibold text-slate-400">THU</div>
-                        <div class="py-2 text-center text-xs font-semibold text-slate-400">FRI</div>
-                        <div class="py-2 text-center text-xs font-semibold text-slate-400">SAT</div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Target Distance (km)</label>
+                        <input type="number" step="0.1" id="p-dist" placeholder="e.g. 10" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Duration (mins)</label>
+                        <input type="number" id="p-dur" required placeholder="e.g. 45" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Target RPE (1-10)</label>
+                        <input type="number" min="1" max="10" id="p-rpe" required placeholder="1-10" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
                     </div>
 
-                    <div id="cal-grid" class="grid grid-cols-7 flex-1 auto-rows-fr bg-slate-700/30 gap-[1px]"></div>
+                    <div class="md:col-span-2">
+                        <label class="block text-xs text-slate-400 mb-1">Focus / Details</label>
+                        <input type="text" id="p-focus" placeholder="e.g. Easy recovery, Z2 pace" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Repeat Schedule...</label>
+                        <select id="p-repeat" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
+                            <option value="1">Single session (No repeat)</option>
+                            <option value="2">Repeat every week for 2 Weeks</option>
+                            <option value="4">Repeat every week for 4 Weeks</option>
+                            <option value="8">Repeat every week for 8 Weeks</option>
+                            <option value="12">Repeat every week for 12 Weeks</option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-3">
+                        <button type="submit" id="p-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors shadow-lg shadow-blue-600/20">Add Session to Plan</button>
+                    </div>
+                </form>
+
+                <!-- Calendar Section -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 id="cal-month" class="text-base font-bold text-slate-200">Calendar</h3>
+                        <div class="flex gap-2">
+                            <button onclick="calMove(-1)" class="bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold text-slate-300">‹ Prev</button>
+                            <button onclick="calMove(1)" class="bg-slate-800 hover:bg-slate-700 px-3 py-1 rounded-lg text-xs font-bold text-slate-300">Next ›</button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 text-center text-[11px] font-semibold text-slate-500 mb-1 py-1 bg-slate-900/90 rounded-lg">
+                        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                    </div>
+                    <div id="cal-grid" class="grid grid-cols-7 border-l border-t border-slate-800 rounded-lg overflow-hidden"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- PERSONAL BESTS TAB -->
-        <div id="tab-pbs" class="hidden flex-col gap-6 w-full">
-            <div class="glass-panel p-8 rounded-2xl shadow-xl w-full">
-                <h2 class="text-xl font-semibold mb-2 text-white flex items-center gap-2">Estimated Personal Bests</h2>
-                <p class="text-sm text-slate-400 mb-8">Calculated intelligently by projecting your best average pace from sessions that meet or exceed these distances.</p>
-
+            <!-- TAB 3: PERSONAL BESTS -->
+            <div id="tab-pbs" class="hidden flex-col gap-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-slate-800/40 rounded-xl p-5 border border-sky-500/20">
-                        <h3 class="text-sky-400 font-semibold mb-4 border-b border-slate-700 pb-2">Swimming</h3>
-                        <div id="pb-swim" class="space-y-3"></div>
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                        <h3 class="text-sm font-bold text-sky-400 mb-4 pb-2 border-b border-slate-800 flex items-center justify-between">
+                            <span>🏊 Swim Records</span>
+                        </h3>
+                        <div id="pb-swim" class="space-y-1"></div>
                     </div>
-                    <div class="bg-slate-800/40 rounded-xl p-5 border border-yellow-500/20">
-                        <h3 class="text-yellow-400 font-semibold mb-4 border-b border-slate-700 pb-2">Cycling</h3>
-                        <div id="pb-bike" class="space-y-3"></div>
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                        <h3 class="text-sm font-bold text-yellow-400 mb-4 pb-2 border-b border-slate-800 flex items-center justify-between">
+                            <span>🚴 Bike Records</span>
+                        </h3>
+                        <div id="pb-bike" class="space-y-1"></div>
                     </div>
-                    <div class="bg-slate-800/40 rounded-xl p-5 border border-red-500/20">
-                        <h3 class="text-red-400 font-semibold mb-4 border-b border-slate-700 pb-2">Running</h3>
-                        <div id="pb-run" class="space-y-3"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- AI COACH TAB -->
-        <div id="tab-ai" class="hidden flex-col gap-6 w-full">
-            <div class="glass-panel p-8 rounded-2xl shadow-xl w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-1 space-y-4">
-                    <h2 class="text-xl font-semibold text-white flex items-center gap-2 mb-4">
-                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                        Pro AI Coach
-                    </h2>
-                    <p class="text-xs text-slate-400 mb-4">Coach parses your last 4 weeks of load, MTD volume, and 2-week upcoming planner to offer tailored progression advice.</p>
-
-                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
-                        <label class="block text-xs font-medium text-slate-400 mb-2">Gemini API Key</label>
-                        <input type="password" id="ai-key" placeholder="Starts with AIza or AQ..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-sm outline-none text-white mb-3">
-                        <button id="ai-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-2.5 rounded-lg transition-colors text-sm shadow-lg">Analyze My Week</button>
-                    </div>
-                </div>
-
-                <div class="lg:col-span-2">
-                    <div id="ai-output" class="bg-slate-900/80 rounded-xl p-6 border border-purple-500/30 min-h-[300px] flex flex-col relative text-sm leading-relaxed text-slate-300 whitespace-pre-wrap">
-                        Awaiting input. Enter your API key and click "Analyze" to generate a comprehensive training review.
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+                        <h3 class="text-sm font-bold text-red-400 mb-4 pb-2 border-b border-slate-800 flex items-center justify-between">
+                            <span>🏃 Run Records</span>
+                        </h3>
+                        <div id="pb-run" class="space-y-1"></div>
                     </div>
                 </div>
             </div>
+
+            <!-- TAB 4: AI COACH -->
+            <div id="tab-ai" class="hidden flex-col gap-6">
+                <div class="bg-slate-900/80 border border-purple-500/20 rounded-2xl p-6 shadow-xl max-w-3xl mx-auto w-full">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold text-xl border border-purple-500/30">✨</div>
+                        <div>
+                            <h3 class="font-bold text-slate-100">AI Triathlon Analysis</h3>
+                            <p class="text-xs text-slate-400">Evaluate historic fatigue, current volume, and upcoming calendar block.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Gemini API Key</label>
+                            <input type="password" id="ai-key" placeholder="AIzaSy..." class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-purple-500">
+                        </div>
+                        <button id="ai-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-purple-600/20">Analyze My Week</button>
+                    </div>
+
+                    <div id="ai-output" class="mt-6 p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs leading-relaxed text-slate-300 min-h-[120px]">
+                        Your coach report will appear here...
+                    </div>
+                </div>
+            </div>
+
         </div>
+    </main>
 
+    <!-- PLAN DETAIL & EDIT MODAL -->
+    <div id="plan-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
+            <button onclick="closePlanModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold">✕</button>
+            <h3 id="pm-title" class="text-xl font-bold text-slate-100 mb-1">Edit Plan</h3>
+            <p id="pm-date-display" class="text-xs text-slate-400 mb-4"></p>
+            
+            <form id="pm-form" class="space-y-3">
+                <input type="hidden" id="pm-id">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Sport</label>
+                        <select id="pm-sport" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200">
+                            <option value="Swim">Swim</option>
+                            <option value="Bike">Bike</option>
+                            <option value="Run">Run</option>
+                            <option value="Strength">Strength</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Time of Day</label>
+                        <select id="pm-time" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200">
+                            <option value="Morning">Morning</option>
+                            <option value="Lunch">Lunch</option>
+                            <option value="Evening">Evening</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Dist (km)</label>
+                        <input type="number" step="0.1" id="pm-dist" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Dur (mins)</label>
+                        <input type="number" id="pm-dur" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200" required>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Target RPE</label>
+                        <input type="number" min="1" max="10" id="pm-rpe" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Focus / Session Notes</label>
+                    <input type="text" id="pm-focus" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200" placeholder="e.g. 5x100m Threshold">
+                </div>
+
+                <div class="flex gap-2 pt-3">
+                    <button type="button" onclick="deleteModalPlan()" class="bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600/30 px-4 py-2 rounded-xl text-sm font-semibold transition-colors">Delete</button>
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white py-2 rounded-xl text-sm font-semibold transition-colors">Save Changes</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- Custom Toast UI -->
-    <div id="toast" class="toast fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-3 rounded shadow-xl border border-slate-700 z-50 flex items-center gap-2 text-sm font-medium">
-        <span id="toast-msg"></span>
-    </div>
-
- <script type="module">
+    <!-- Firebase App Logic -->
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-     
-     // Firebase Config (Strict matching)
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDqjhAnOfBT_53ie7BWmbCT_Y1QeAZk1WI",
             authDomain: "tri-tracker-a0429.firebaseapp.com",
@@ -337,13 +370,13 @@
             appId: "1:58441123151:web:da96263fe260141a86b13a"
         };
 
-        const APP_ID = 'tri-smart'; // Required for strict paths rules
+        const APP_ID = 'tri-smart';
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // State & Listeners
+        // State variables
         let currentUser = null;
         let workouts = [];
         let plans = [];
@@ -356,7 +389,7 @@
         let chartLoad = null;
         let chartPace = null;
 
-        // Configuration
+        // Subtypes taxonomy
         const sportSubs = {
             'Swim': ['Long', 'Tempo', 'Interval', 'Recovery', 'Technique', 'Open Water', 'Race'],
             'Bike': ['Long Ride', 'Tempo', 'Interval', 'Recovery', 'Indoor', 'Race'],
@@ -364,34 +397,27 @@
             'Strength': ['Heavy Lifting', 'Circuit', 'Mobility', 'Core', 'Rehab']
         };
 
-        // Utility: Toast
+        // Toast utility
         const showToast = (msg, isError = false) => {
             const el = document.getElementById('toast');
             document.getElementById('toast-msg').textContent = msg;
-            el.style.borderColor = isError ? '#ef4444' : '#10b981';
+            document.getElementById('toast-indicator').className = `w-2.5 h-2.5 rounded-full ${isError ? 'bg-red-500' : 'bg-emerald-400'}`;
             el.classList.add('show');
             setTimeout(() => el.classList.remove('show'), 3000);
         };
 
-        // Date Utils
         const getStartOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
         const daysAgo = (d) => { const x = new Date(); x.setDate(x.getDate() - d); return getStartOfDay(x); };
 
-        // DOM Elements
+        // DOM Element map
         const DOM = {
             loginBtn: document.getElementById('login-btn'),
             logoutBtn: document.getElementById('logout-btn'),
             userInfo: document.getElementById('user-info'),
             userName: document.getElementById('user-name'),
-            loggedOutView: document.getElementById('logged-out-view'),
-            loggedInView: document.getElementById('loggedInView'), 
-
-            // Filters
             fSearch: document.getElementById('f-search'),
             fSport: document.getElementById('f-sport'),
             fAllTime: document.getElementById('f-alltime'),
-
-            // Sub-type dropdown logic
             wSport: document.getElementById('w-sport'),
             wType: document.getElementById('w-type'),
             wDistCont: document.getElementById('w-dist-container'),
@@ -401,7 +427,7 @@
             wSecs: document.getElementById('w-secs'),
         };
 
-        // Form setups
+        // Dynamic sport sub-types logic
         const updateSubTypes = () => {
             const sp = DOM.wSport.value;
             DOM.wType.innerHTML = sportSubs[sp].map(s => `<option value="${s}">${s}</option>`).join('');
@@ -417,12 +443,12 @@
         DOM.wSport.addEventListener('change', updateSubTypes);
         updateSubTypes();
 
-       // Feed Filters
-[DOM.fSearch, DOM.fSport, DOM.fAllTime].forEach(el => {
-    if (el) el.addEventListener('input', () => renderFeed());
-});
+        // Feed Filters setup
+        [DOM.fSearch, DOM.fSport, DOM.fAllTime].forEach(el => {
+            if (el) el.addEventListener('input', () => { if (typeof renderFeed === 'function') renderFeed(); });
+        });
 
-        // Auth
+        // Auth Listeners
         DOM.loginBtn.addEventListener('click', async () => {
             try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
             catch(e) { showToast('Login failed', true); }
@@ -437,6 +463,7 @@
                 document.getElementById('logged-in-view').classList.add('flex');
                 DOM.loginBtn.classList.add('hidden');
                 DOM.userInfo.classList.remove('hidden');
+                DOM.userInfo.classList.add('flex');
                 DOM.userName.textContent = user.displayName || 'Athlete';
                 initData();
             } else {
@@ -451,7 +478,7 @@
             }
         });
 
-        // Initialize Defaults
+        // Initialize default dates
         document.getElementById('w-date').valueAsDate = new Date();
         const t = new Date(); t.setDate(t.getDate()+1);
         document.getElementById('p-date').valueAsDate = t;
@@ -464,7 +491,7 @@
             unsubWorkouts = onSnapshot(wRef, snap => {
                 workouts = [];
                 snap.forEach(d => workouts.push({id: d.id, ...d.data()}));
-                workouts.sort((a,b) => new Date(b.date) - new Date(a.date)); // newest first
+                workouts.sort((a,b) => new Date(b.date) - new Date(a.date));
                 renderFeed();
                 renderCharts();
                 renderPBs();
@@ -477,7 +504,7 @@
             }, err => showToast('Error loading plans', true));
         }
 
-        // Add Workout
+        // Add Workout Handler
         document.getElementById('workout-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if(!currentUser) return;
@@ -516,7 +543,6 @@
             try {
                 await addDoc(collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'workouts'), data);
                 showToast('Workout saved!');
-                // Reset numeric fields
                 DOM.wDist.value=''; DOM.wHrs.value=''; DOM.wMins.value=''; DOM.wSecs.value='';
                 document.getElementById('w-hr').value=''; document.getElementById('w-rpe').value='';
                 document.getElementById('w-notes').value='';
@@ -527,137 +553,285 @@
             }
         });
 
-// Add Plan (Supports Repeating Weeks & Time of Day)
-document.getElementById('plan-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if(!currentUser) return;
-    const btn = document.getElementById('p-submit');
-    btn.disabled = true; btn.textContent = 'Adding...';
+        // Add Plan Handler (Supports Recurring Schedule & Time of Day)
+        document.getElementById('plan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!currentUser) return;
+            const btn = document.getElementById('p-submit');
+            btn.disabled = true; btn.textContent = 'Adding...';
 
-    const startDateStr = document.getElementById('p-date').value;
-    const weeksToRepeat = parseInt(document.getElementById('p-repeat').value) || 1;
+            const startDateStr = document.getElementById('p-date').value;
+            const weeksToRepeat = parseInt(document.getElementById('p-repeat').value) || 1;
 
-    const baseData = {
-        sport: document.getElementById('p-sport').value,
-        timeOfDay: document.getElementById('p-time').value,
-        dist: parseFloat(document.getElementById('p-dist').value) || 0,
-        dur: parseFloat(document.getElementById('p-dur').value),
-        rpe: parseInt(document.getElementById('p-rpe').value),
-        focus: document.getElementById('p-focus').value.trim()
-    };
+            const baseData = {
+                sport: document.getElementById('p-sport').value,
+                timeOfDay: document.getElementById('p-time').value,
+                dist: parseFloat(document.getElementById('p-dist').value) || 0,
+                dur: parseFloat(document.getElementById('p-dur').value),
+                rpe: parseInt(document.getElementById('p-rpe').value),
+                focus: document.getElementById('p-focus').value.trim()
+            };
 
-    try {
-        const [year, month, day] = startDateStr.split('-').map(Number);
-        
-        for (let w = 0; w < weeksToRepeat; w++) {
-            const planDate = new Date(year, month - 1, day + (w * 7));
-            const dateISO = `${planDate.getFullYear()}-${String(planDate.getMonth() + 1).padStart(2, '0')}-${String(planDate.getDate()).padStart(2, '0')}`;
-            
-            await addDoc(collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans'), {
-                ...baseData,
-                date: dateISO
+            try {
+                const [year, month, day] = startDateStr.split('-').map(Number);
+                
+                for (let w = 0; w < weeksToRepeat; w++) {
+                    const planDate = new Date(year, month - 1, day + (w * 7));
+                    const dateISO = `${planDate.getFullYear()}-${String(planDate.getMonth() + 1).padStart(2, '0')}-${String(planDate.getDate()).padStart(2, '0')}`;
+                    
+                    await addDoc(collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans'), {
+                        ...baseData,
+                        date: dateISO
+                    });
+                }
+                
+                showToast(weeksToRepeat > 1 ? `Plan repeated across ${weeksToRepeat} weeks!` : 'Plan added!');
+                document.getElementById('p-focus').value = '';
+                document.getElementById('p-dur').value = '';
+                document.getElementById('p-dist').value = '';
+            } catch(e) {
+                showToast('Failed to add plan', true);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Add to Plan';
+            }
+        });
+
+        // Global Delete helper
+        window.delDoc = async (col, id) => {
+            if(!currentUser) return;
+            try { await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, col, id)); }
+            catch(e) { showToast('Delete failed', true); }
+        };
+
+        // Render Activity Feed
+        function renderFeed() {
+            const list = document.getElementById('feed-list');
+            const term = DOM.fSearch.value.toLowerCase();
+            const sport = DOM.fSport.value;
+            const showAll = DOM.fAllTime.checked;
+            const cutoff = daysAgo(14);
+
+            let html = '';
+            let count = 0;
+
+            workouts.forEach(w => {
+                const wDate = new Date(w.date + 'T12:00:00');
+                if (!showAll && !term && wDate < cutoff) return;
+                if (sport !== 'All' && w.sport !== sport) return;
+                if (term && !(w.notes||'').toLowerCase().includes(term) && !(w.subType||'').toLowerCase().includes(term)) return;
+
+                count++;
+                const colorMap = { 'Swim': 'sky', 'Bike': 'yellow', 'Run': 'red', 'Strength': 'emerald' };
+                const c = colorMap[w.sport] || 'slate';
+
+                let pace = '--';
+                if(w.distance > 0 && w.durationMins > 0) {
+                    if(w.sport === 'Bike') pace = (w.distance / (w.durationMins/60)).toFixed(1) + ' km/h';
+                    else {
+                        const mPerU = w.durationMins / (w.sport==='Swim' ? w.distance*10 : w.distance);
+                        const mins = Math.floor(mPerU);
+                        const secs = Math.round((mPerU - mins)*60);
+                        pace = `${mins}:${secs.toString().padStart(2,'0')} /${w.sport==='Swim'?'100m':'km'}`;
+                    }
+                }
+
+                html += `
+                <div class="bg-slate-800/40 p-4 rounded-xl border border-${c}-500/20 hover:bg-slate-700/50 transition-colors group relative">
+                    <button onclick="delDoc('workouts', '${w.id}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-${c}-400"></div>
+                        <h4 class="font-semibold text-slate-200 text-sm">${w.sport} <span class="text-slate-400 font-normal ml-1">| ${w.subType || 'General'}</span></h4>
+                        <span class="text-xs text-slate-500 ml-auto mr-4">${new Date(w.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Dist</div><div class="text-slate-300 font-medium">${w.sport==='Strength'?'-':w.distance+'k'}</div></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Time</div><div class="text-slate-300 font-medium">${w.durationStr || Math.round(w.durationMins)+'m'}</div></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Pace</div><div class="text-slate-300 font-medium">${pace}</div></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">RPE</div><div class="text-slate-300 font-medium">${w.rpe}/10</div></div>
+                    </div>
+                    ${w.notes ? `<p class="text-xs text-slate-400 mt-2 border-l-2 border-slate-600 pl-2 italic">${w.notes}</p>` : ''}
+                </div>`;
+            });
+
+            list.innerHTML = count ? html : `<div class="text-slate-500 text-center text-sm mt-8 col-span-full">No workouts match your criteria.</div>`;
+        }
+
+        // Render Analytics Charts
+        function renderCharts() {
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = 'Inter';
+
+            // 1. Yearly Volume
+            const yearData = Array(12).fill(0).map(()=>({S:0, B:0, R:0}));
+            const currYear = new Date().getFullYear();
+            workouts.forEach(w => {
+                const d = new Date(w.date + 'T12:00:00');
+                if(d.getFullYear() === currYear && w.sport !== 'Strength') {
+                    const m = d.getMonth();
+                    if(w.sport==='Swim') yearData[m].S += w.distance;
+                    if(w.sport==='Bike') yearData[m].B += w.distance;
+                    if(w.sport==='Run')  yearData[m].R += w.distance;
+                }
+            });
+
+            if(chartVol) chartVol.destroy();
+            chartVol = new Chart(document.getElementById('chart-yearly'), {
+                type: 'bar',
+                data: {
+                    labels: ['J','F','M','A','M','J','J','A','S','O','N','D'],
+                    datasets: [
+                        { label: 'Swim', data: yearData.map(d=>d.S), backgroundColor: '#0ea5e9' },
+                        { label: 'Bike', data: yearData.map(d=>d.B), backgroundColor: '#eab308' },
+                        { label: 'Run',  data: yearData.map(d=>d.R), backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { stacked: true, grid: {display:false} }, y: { stacked: true, grid: {color: '#334155'} } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Weekly Load
+            const weeks = Array(12).fill(0);
+            const today = getStartOfDay(new Date());
+            workouts.forEach(w => {
+                const d = new Date(w.date + 'T12:00:00');
+                const diffDays = Math.floor((today - d) / (1000*60*60*24));
+                const wk = Math.floor(diffDays / 7);
+                if(wk >= 0 && wk < 12) weeks[wk] += (w.durationMins * w.rpe);
+            });
+            weeks.reverse();
+
+            if(chartLoad) chartLoad.destroy();
+            chartLoad = new Chart(document.getElementById('chart-load'), {
+                type: 'bar',
+                data: {
+                    labels: Array(12).fill(0).map((_,i) => `Wk -${11-i}`),
+                    datasets: [{ label: 'Load', data: weeks, backgroundColor: '#8b5cf6', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { grid: {display:false} }, y: { grid: {color: '#334155'} } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 3. Long Run Pace Progression
+            const longRuns = workouts.filter(w => w.sport === 'Run' && w.distance >= 10).sort((a,b) => new Date(a.date)-new Date(b.date));
+            const paceData = longRuns.map(w => w.durationMins / w.distance);
+            const paceLabels = longRuns.map(w => new Date(w.date).toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+
+            if(chartPace) chartPace.destroy();
+            chartPace = new Chart(document.getElementById('chart-pace'), {
+                type: 'line',
+                data: {
+                    labels: paceLabels,
+                    datasets: [{ label: 'Run Pace (>10k)', data: paceData, borderColor: '#ef4444', tension: 0.3, pointBackgroundColor: '#ef4444' }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { grid: {display:false} }, y: { reverse: true, title: {display:true, text:'min/km'}, grid: {color: '#334155'} } },
+                    plugins: { legend: { display: false } }
+                }
             });
         }
-        
-        showToast(weeksToRepeat > 1 ? `Plan repeated across ${weeksToRepeat} weeks!` : 'Plan added!');
-        document.getElementById('p-focus').value = '';
-        document.getElementById('p-dur').value = '';
-        document.getElementById('p-dist').value = '';
-    } catch(e) {
-        showToast('Failed to add plan', true);
-    } finally {
-        btn.disabled = false; btn.textContent = 'Add to Plan';
-    }
-});
 
-// Render Calendar Grid with Time Badges & Click-to-Open Modal
-function renderCalendar() {
-    const grid = document.getElementById('cal-grid');
-    document.getElementById('cal-month').textContent = calDate.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+        // Calendar Controls
+        window.calMove = (offset) => { calDate.setMonth(calDate.getMonth() + offset); renderCalendar(); };
 
-    const y = calDate.getFullYear();
-    const m = calDate.getMonth();
-    const firstDay = new Date(y, m, 1).getDay();
-    const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const today = new Date();
+        // Render Interactive Calendar Grid
+        function renderCalendar() {
+            const grid = document.getElementById('cal-grid');
+            document.getElementById('cal-month').textContent = calDate.toLocaleDateString(undefined, {month:'long', year:'numeric'});
 
-    let html = '';
-    for(let i=0; i<firstDay; i++) html += `<div class="bg-slate-900/30 border-r border-b border-slate-700/30"></div>`;
+            const y = calDate.getFullYear();
+            const m = calDate.getMonth();
+            const firstDay = new Date(y, m, 1).getDay();
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
+            const today = new Date();
 
-    for(let d=1; d<=daysInMonth; d++) {
-        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const isToday = d===today.getDate() && m===today.getMonth() && y===today.getFullYear();
+            let html = '';
+            for(let i=0; i<firstDay; i++) html += `<div class="bg-slate-900/30 border-r border-b border-slate-800"></div>`;
 
-        const dPlans = plans.filter(p => p.date === dateStr);
-        const pBlocks = dPlans.map(p => {
-            const c = p.sport==='Swim'?'sky':(p.sport==='Bike'?'yellow':(p.sport==='Run'?'red':'emerald'));
-            const timeTag = p.timeOfDay ? `<span class="opacity-75 font-mono text-[8px] mr-1">[${p.timeOfDay.charAt(0)}]</span>` : '';
-            return `
-            <div onclick="openPlanModal('${p.id}')" class="cursor-pointer relative group text-[10px] leading-tight p-1 mb-1 rounded-md border-l-2 border-${c}-500 bg-${c}-500/10 hover:bg-${c}-500/20 text-${c}-300 transition-all overflow-hidden text-ellipsis whitespace-nowrap shadow-sm">
-                ${timeTag}<strong>${p.sport.charAt(0)}:</strong> ${p.focus || p.dur + 'm'}
-            </div>`;
-        }).join('');
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const isToday = d===today.getDate() && m===today.getMonth() && y===today.getFullYear();
 
-        html += `
-        <div class="bg-slate-900/60 border-r border-b border-slate-700/30 p-1.5 min-h-[90px] flex flex-col hover:bg-slate-800/80 transition-colors">
-            <div class="text-right mb-1"><span class="inline-flex w-5 h-5 items-center justify-center text-xs ${isToday?'bg-blue-600 text-white rounded-full font-bold':'text-slate-400'}">${d}</span></div>
-            <div class="flex-1 overflow-y-auto no-scrollbar">${pBlocks}</div>
-        </div>`;
-    }
-    grid.innerHTML = html;
-}
+                const dPlans = plans.filter(p => p.date === dateStr);
+                const pBlocks = dPlans.map(p => {
+                    const c = p.sport==='Swim'?'sky':(p.sport==='Bike'?'yellow':(p.sport==='Run'?'red':'emerald'));
+                    const timeTag = p.timeOfDay ? `<span class="opacity-75 font-mono text-[8px] mr-1">[${p.timeOfDay.charAt(0)}]</span>` : '';
+                    return `
+                    <div onclick="openPlanModal('${p.id}')" class="cursor-pointer relative group text-[10px] leading-tight p-1 mb-1 rounded border-l-2 border-${c}-500 bg-${c}-500/10 hover:bg-${c}-500/20 text-${c}-300 transition-all overflow-hidden text-ellipsis whitespace-nowrap shadow-sm">
+                        ${timeTag}<strong>${p.sport.charAt(0)}:</strong> ${p.focus || p.dur + 'm'}
+                    </div>`;
+                }).join('');
 
-// Modal Functions (Global window scope)
-window.openPlanModal = (planId) => {
-    const p = plans.find(x => x.id === planId);
-    if(!p) return;
+                html += `
+                <div class="bg-slate-900/60 border-r border-b border-slate-800 p-1.5 min-h-[90px] flex flex-col hover:bg-slate-800/80 transition-colors">
+                    <div class="text-right mb-1"><span class="inline-flex w-5 h-5 items-center justify-center text-xs ${isToday?'bg-blue-600 text-white rounded-full font-bold':'text-slate-400'}">${d}</span></div>
+                    <div class="flex-1 overflow-y-auto no-scrollbar">${pBlocks}</div>
+                </div>`;
+            }
+            grid.innerHTML = html;
+        }
 
-    document.getElementById('pm-id').value = p.id;
-    document.getElementById('pm-date-display').textContent = `Scheduled for: ${p.date}`;
-    document.getElementById('pm-sport').value = p.sport || 'Run';
-    document.getElementById('pm-time').value = p.timeOfDay || 'Morning';
-    document.getElementById('pm-dist').value = p.dist || 0;
-    document.getElementById('pm-dur').value = p.dur || 0;
-    document.getElementById('pm-rpe').value = p.rpe || 5;
-    document.getElementById('pm-focus').value = p.focus || '';
+        // Calendar Plan Detail/Edit Modal Controls
+        window.openPlanModal = (planId) => {
+            const p = plans.find(x => x.id === planId);
+            if(!p) return;
 
-    document.getElementById('plan-modal').classList.remove('hidden');
-};
+            document.getElementById('pm-id').value = p.id;
+            document.getElementById('pm-date-display').textContent = `Scheduled for: ${p.date}`;
+            document.getElementById('pm-sport').value = p.sport || 'Run';
+            document.getElementById('pm-time').value = p.timeOfDay || 'Morning';
+            document.getElementById('pm-dist').value = p.dist || 0;
+            document.getElementById('pm-dur').value = p.dur || 0;
+            document.getElementById('pm-rpe').value = p.rpe || 5;
+            document.getElementById('pm-focus').value = p.focus || '';
 
-window.closePlanModal = () => {
-    document.getElementById('plan-modal').classList.add('hidden');
-};
+            document.getElementById('plan-modal').classList.remove('hidden');
+        };
 
-window.deleteModalPlan = async () => {
-    const id = document.getElementById('pm-id').value;
-    if(!id) return;
-    await window.delDoc('plans', id);
-    closePlanModal();
-};
+        window.closePlanModal = () => {
+            document.getElementById('plan-modal').classList.add('hidden');
+        };
 
-document.getElementById('pm-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if(!currentUser) return;
+        window.deleteModalPlan = async () => {
+            const id = document.getElementById('pm-id').value;
+            if(!id) return;
+            await window.delDoc('plans', id);
+            closePlanModal();
+        };
 
-    const id = document.getElementById('pm-id').value;
-    const data = {
-        sport: document.getElementById('pm-sport').value,
-        timeOfDay: document.getElementById('pm-time').value,
-        dist: parseFloat(document.getElementById('pm-dist').value) || 0,
-        dur: parseFloat(document.getElementById('pm-dur').value),
-        rpe: parseInt(document.getElementById('pm-rpe').value),
-        focus: document.getElementById('pm-focus').value.trim()
-    };
+        const pmForm = document.getElementById('pm-form');
+        if (pmForm) {
+            pmForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if(!currentUser) return;
 
-    try {
-        await updateDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans', id), data);
-        showToast('Plan updated!');
-        closePlanModal();
-    } catch(err) {
-        showToast('Update failed', true);
-    }
-});
+                const id = document.getElementById('pm-id').value;
+                const data = {
+                    sport: document.getElementById('pm-sport').value,
+                    timeOfDay: document.getElementById('pm-time').value,
+                    dist: parseFloat(document.getElementById('pm-dist').value) || 0,
+                    dur: parseFloat(document.getElementById('pm-dur').value),
+                    rpe: parseInt(document.getElementById('pm-rpe').value),
+                    focus: document.getElementById('pm-focus').value.trim()
+                };
 
+                try {
+                    await updateDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans', id), data);
+                    showToast('Plan updated!');
+                    closePlanModal();
+                } catch(err) {
+                    showToast('Update failed', true);
+                }
+            });
+        }
+
+        // Render Personal Bests
         function renderPBs() {
             const tMap = {
                 'Swim': [0.5, 1, 2, 3, 4, 5],
@@ -674,8 +848,8 @@ document.getElementById('pm-form').addEventListener('submit', async (e) => {
             Object.keys(tMap).forEach(sp => {
                 let html = '';
                 tMap[sp].forEach(tDist => {
-                    let bestPace = Infinity; // min/km or min/km eqv
-                    let bestSpeed = 0;       // km/h for bike
+                    let bestPace = Infinity;
+                    let bestSpeed = 0;
 
                     workouts.forEach(w => {
                         if(w.sport !== sp || w.distance < tDist) return;
@@ -693,16 +867,16 @@ document.getElementById('pm-form').addEventListener('submit', async (e) => {
                     else if(sp!=='Bike' && bestPace !== Infinity) display = fmt(bestPace * tDist);
 
                     html += `
-                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50 last:border-0">
-                        <span class="text-sm text-slate-300">${tDist}${sp==='Swim'&&tDist<1?'km (500m)':'km'}</span>
-                        <span class="text-sm font-semibold ${display==='--'?'text-slate-600':'text-white'}">${display}</span>
+                    <div class="flex justify-between items-center py-2 border-b border-slate-800 last:border-0">
+                        <span class="text-xs text-slate-400">${tDist}${sp==='Swim'&&tDist<1?'km (500m)':'km'}</span>
+                        <span class="text-xs font-semibold ${display==='--'?'text-slate-600':'text-slate-200'}">${display}</span>
                     </div>`;
                 });
                 document.getElementById(`pb-${sp.toLowerCase()}`).innerHTML = html;
             });
         }
 
-        // Tab Switcher
+        // Tab Navigation Switcher
         window.switchTab = (id) => {
             ['dashboard','plan','pbs','ai'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -717,7 +891,7 @@ document.getElementById('pm-form').addEventListener('submit', async (e) => {
             btn.classList.add('text-white', id==='ai'?'bg-purple-600':'bg-blue-600');
         };
 
-        // AI Request
+        // AI Request Handler
         document.getElementById('ai-btn').addEventListener('click', async () => {
             const key = document.getElementById('ai-key').value.trim();
             if(!key) return showToast('Please enter an API Key', true);
@@ -725,14 +899,13 @@ document.getElementById('pm-form').addEventListener('submit', async (e) => {
             const btn = document.getElementById('ai-btn');
             const out = document.getElementById('ai-output');
             btn.disabled = true; btn.textContent = 'Analyzing...';
-            out.innerHTML = `<div class="flex items-center gap-3 text-purple-400"><div class="loading-spinner border-t-purple-500"></div> Parsing history and plans...</div>`;
+            out.innerHTML = `<span class="text-purple-400">Parsing training load history...</span>`;
 
-            // Collect Data
             const today = getStartOfDay(new Date());
             const mtd = new Date(today.getFullYear(), today.getMonth(), 1);
 
             let mtdVol = 0;
-            let histWeeks = [0,0,0,0]; // Last 4 weeks load
+            let histWeeks = [0,0,0,0];
             workouts.forEach(w => {
                 const d = new Date(w.date + 'T12:00:00');
                 if(d >= mtd) mtdVol += w.durationMins;
@@ -755,7 +928,7 @@ document.getElementById('pm-form').addEventListener('submit', async (e) => {
 3. Future: My planned load next week is ${fWeek1}, and the week after is ${fWeek2}. Give advice on this upcoming block.`;
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${key}`, {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
@@ -763,9 +936,11 @@ document.getElementById('pm-form').addEventListener('submit', async (e) => {
                 if (data.error) throw new Error(data.error.message);
                 out.textContent = data.candidates[0].content.parts[0].text;
             } catch (err) {
-                out.innerHTML = `<span class="text-red-400">Error: ${err.message}. Please verify your key.</span>`;
+                out.innerHTML = `<span class="text-red-400">Error: ${err.message}. Please check your API key.</span>`;
             } finally {
                 btn.disabled = false; btn.textContent = 'Analyze My Week';
             }
         });
     </script>
+</body>
+</html>
