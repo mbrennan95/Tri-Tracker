@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TriSmart - Athlete Dashboard</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -20,21 +17,17 @@
 </head>
 <body class="h-full min-h-screen bg-slate-950 text-slate-100 antialiased flex flex-col">
 
-    <!-- Toast Notification -->
     <div id="toast" class="fixed top-5 right-5 z-50 flex items-center gap-3 bg-slate-900 border border-slate-700 px-4 py-3 rounded-xl shadow-2xl opacity-0 -translate-y-8 pointer-events-none">
         <div id="toast-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
         <span id="toast-msg" class="text-sm font-medium text-slate-200"></span>
     </div>
 
-    <!-- Header / Navigation -->
     <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center font-black text-white text-xl shadow-lg shadow-blue-500/20">⚡</div>
                 <h1 class="font-bold text-lg tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">TriSmart</h1>
             </div>
-
-            <!-- Auth Controls -->
             <div class="flex items-center gap-3">
                 <div id="user-info" class="hidden items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700/50">
                     <span id="user-name" class="text-xs font-semibold text-slate-300"></span>
@@ -45,20 +38,14 @@
         </div>
     </header>
 
-    <!-- Main Content Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 flex flex-col">
-        
-        <!-- Logged Out View -->
         <div id="logged-out-view" class="flex-1 flex flex-col items-center justify-center text-center py-20">
             <div class="w-16 h-16 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 text-2xl mb-4">🏆</div>
             <h2 class="text-2xl font-bold text-white mb-2">Track Your Triathlon Journey</h2>
             <p class="text-slate-400 max-w-md text-sm mb-6">Log swims, rides, runs, and strength sessions. Plan future blocks and let AI coach your week.</p>
         </div>
 
-        <!-- Logged In View -->
         <div id="logged-in-view" class="hidden flex-col gap-6">
-            
-            <!-- Tab Navigation Bar -->
             <div class="flex items-center gap-2 p-1 bg-slate-900 border border-slate-800 rounded-2xl w-fit">
                 <button id="tab-btn-dashboard" onclick="switchTab('dashboard')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all">Dashboard</button>
                 <button id="tab-btn-plan" onclick="switchTab('plan')" class="bg-slate-800 text-slate-400 hover:text-white px-4 py-2 rounded-xl text-xs font-semibold transition-all">Planner</button>
@@ -68,10 +55,7 @@
                 </button>
             </div>
 
-            <!-- TAB 1: DASHBOARD -->
             <div id="tab-dashboard" class="flex flex-col gap-6">
-                
-                <!-- Add Workout Form -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
                     <h3 class="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span> Log Workout Session
@@ -99,7 +83,6 @@
                             <input type="number" step="0.01" id="w-distance" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl px-3 py-2 text-sm text-slate-100 focus:outline-none focus:border-blue-500">
                         </div>
                         
-                        <!-- Duration Inputs -->
                         <div class="sm:col-span-2">
                             <label class="block text-xs font-medium text-slate-400 mb-1">Duration</label>
                             <div class="grid grid-cols-3 gap-2">
@@ -129,11 +112,15 @@
                     </form>
                 </div>
 
-                <!-- Analytics Charts Row -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Analytics Charts Row (Now 4 Columns) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                     <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col h-64">
                         <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Yearly Volume (km)</h4>
                         <div class="flex-1 relative"><canvas id="chart-yearly"></canvas></div>
+                    </div>
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col h-64">
+                        <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">4W Volume (km)</h4>
+                        <div class="flex-1 relative"><canvas id="chart-weekly"></canvas></div>
                     </div>
                     <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-col h-64">
                         <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Weekly Load (Mins × RPE)</h4>
@@ -145,7 +132,6 @@
                     </div>
                 </div>
 
-                <!-- Feed Filters & Recent Activity List -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
                     <div class="flex flex-wrap items-center justify-between gap-4 mb-4 pb-3 border-b border-slate-800">
                         <h3 class="text-sm font-semibold text-slate-300">Activity History</h3>
@@ -166,12 +152,9 @@
                     </div>
                     <div id="feed-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3"></div>
                 </div>
-
             </div>
 
-            <!-- TAB 2: PLANNER -->
             <div id="tab-plan" class="hidden flex-col gap-6">
-                <!-- Add Plan Form -->
                 <form id="plan-form" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-2 bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-xl">
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Start Date</label>
@@ -194,7 +177,6 @@
                             <option value="Evening">Evening</option>
                         </select>
                     </div>
-
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Target Distance (km)</label>
                         <input type="number" step="0.1" id="p-dist" placeholder="e.g. 10" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
@@ -207,12 +189,10 @@
                         <label class="block text-xs text-slate-400 mb-1">Target RPE (1-10)</label>
                         <input type="number" min="1" max="10" id="p-rpe" required placeholder="1-10" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
                     </div>
-
                     <div class="md:col-span-2">
                         <label class="block text-xs text-slate-400 mb-1">Focus / Details</label>
                         <input type="text" id="p-focus" placeholder="e.g. Easy recovery, Z2 pace" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
                     </div>
-
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Repeat Schedule...</label>
                         <select id="p-repeat" class="w-full bg-slate-800 border border-slate-700/80 rounded-xl p-2 text-sm text-slate-100">
@@ -223,13 +203,11 @@
                             <option value="12">Repeat every week for 12 Weeks</option>
                         </select>
                     </div>
-
                     <div class="md:col-span-3">
                         <button type="submit" id="p-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-xl text-sm transition-colors shadow-lg shadow-blue-600/20">Add Session to Plan</button>
                     </div>
                 </form>
 
-                <!-- Calendar Section -->
                 <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
                     <div class="flex items-center justify-between mb-4">
                         <h3 id="cal-month" class="text-base font-bold text-slate-200">Calendar</h3>
@@ -245,7 +223,6 @@
                 </div>
             </div>
 
-            <!-- TAB 3: PERSONAL BESTS -->
             <div id="tab-pbs" class="hidden flex-col gap-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
@@ -269,7 +246,6 @@
                 </div>
             </div>
 
-            <!-- TAB 4: AI COACH -->
             <div id="tab-ai" class="hidden flex-col gap-6">
                 <div class="bg-slate-900/80 border border-purple-500/20 rounded-2xl p-6 shadow-xl max-w-3xl mx-auto w-full">
                     <div class="flex items-center gap-3 mb-4">
@@ -293,11 +269,9 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </main>
 
-    <!-- PLAN DETAIL & EDIT MODAL -->
     <div id="plan-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl p-6 shadow-2xl relative">
             <button onclick="closePlanModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg font-bold">✕</button>
@@ -354,13 +328,11 @@
         </div>
     </div>
 
-    <!-- Firebase App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDqjhAnOfBT_53ie7BWmbCT_Y1QeAZk1WI",
             authDomain: "tri-tracker-a0429.firebaseapp.com",
@@ -376,7 +348,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // State variables
         let currentUser = null;
         let workouts = [];
         let plans = [];
@@ -384,12 +355,11 @@
         let unsubPlans = null;
         let calDate = new Date();
 
-        // Chart Instances
         let chartVol = null;
         let chartLoad = null;
         let chartPace = null;
+        let chartWeekly = null; // New chart instance
 
-        // Subtypes taxonomy
         const sportSubs = {
             'Swim': ['Long', 'Tempo', 'Interval', 'Recovery', 'Technique', 'Open Water', 'Race'],
             'Bike': ['Long Ride', 'Tempo', 'Interval', 'Recovery', 'Indoor', 'Race'],
@@ -397,7 +367,6 @@
             'Strength': ['Heavy Lifting', 'Circuit', 'Mobility', 'Core', 'Rehab']
         };
 
-        // Toast utility
         const showToast = (msg, isError = false) => {
             const el = document.getElementById('toast');
             document.getElementById('toast-msg').textContent = msg;
@@ -409,7 +378,6 @@
         const getStartOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
         const daysAgo = (d) => { const x = new Date(); x.setDate(x.getDate() - d); return getStartOfDay(x); };
 
-        // DOM Element map
         const DOM = {
             loginBtn: document.getElementById('login-btn'),
             logoutBtn: document.getElementById('logout-btn'),
@@ -427,7 +395,6 @@
             wSecs: document.getElementById('w-secs'),
         };
 
-        // Dynamic sport sub-types logic
         const updateSubTypes = () => {
             const sp = DOM.wSport.value;
             DOM.wType.innerHTML = sportSubs[sp].map(s => `<option value="${s}">${s}</option>`).join('');
@@ -443,12 +410,10 @@
         DOM.wSport.addEventListener('change', updateSubTypes);
         updateSubTypes();
 
-        // Feed Filters setup
         [DOM.fSearch, DOM.fSport, DOM.fAllTime].forEach(el => {
             if (el) el.addEventListener('input', () => { if (typeof renderFeed === 'function') renderFeed(); });
         });
 
-        // Auth Listeners
         DOM.loginBtn.addEventListener('click', async () => {
             try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
             catch(e) { showToast('Login failed', true); }
@@ -478,7 +443,6 @@
             }
         });
 
-        // Initialize default dates
         document.getElementById('w-date').valueAsDate = new Date();
         const t = new Date(); t.setDate(t.getDate()+1);
         document.getElementById('p-date').valueAsDate = t;
@@ -504,7 +468,6 @@
             }, err => showToast('Error loading plans', true));
         }
 
-        // Add Workout Handler
         document.getElementById('workout-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if(!currentUser) return;
@@ -553,7 +516,6 @@
             }
         });
 
-        // Add Plan Handler (Supports Recurring Schedule & Time of Day)
         document.getElementById('plan-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             if(!currentUser) return;
@@ -596,14 +558,12 @@
             }
         });
 
-        // Global Delete helper
         window.delDoc = async (col, id) => {
             if(!currentUser) return;
             try { await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, col, id)); }
             catch(e) { showToast('Delete failed', true); }
         };
 
-        // Render Activity Feed
         function renderFeed() {
             const list = document.getElementById('feed-list');
             const term = DOM.fSearch.value.toLowerCase();
@@ -656,10 +616,10 @@
             list.innerHTML = count ? html : `<div class="text-slate-500 text-center text-sm mt-8 col-span-full">No workouts match your criteria.</div>`;
         }
 
-        // Render Analytics Charts
         function renderCharts() {
             Chart.defaults.color = '#94a3b8';
             Chart.defaults.font.family = 'Inter';
+            const today = getStartOfDay(new Date());
 
             // 1. Yearly Volume
             const yearData = Array(12).fill(0).map(()=>({S:0, B:0, R:0}));
@@ -668,9 +628,9 @@
                 const d = new Date(w.date + 'T12:00:00');
                 if(d.getFullYear() === currYear && w.sport !== 'Strength') {
                     const m = d.getMonth();
-                    if(w.sport==='Swim') yearData[m].S += w.distance;
-                    if(w.sport==='Bike') yearData[m].B += w.distance;
-                    if(w.sport==='Run')  yearData[m].R += w.distance;
+                    if(w.sport==='Swim') yearData[m].S += (w.distance || 0);
+                    if(w.sport==='Bike') yearData[m].B += (w.distance || 0);
+                    if(w.sport==='Run')  yearData[m].R += (w.distance || 0);
                 }
             });
 
@@ -692,9 +652,40 @@
                 }
             });
 
-            // 2. Weekly Load
+            // 2. Weekly Volume (KM) - Last 4 Weeks
+            const weeklyDist = Array(4).fill(0).map(()=>({S:0, B:0, R:0}));
+            workouts.forEach(w => {
+                const d = new Date(w.date + 'T12:00:00');
+                const diffDays = Math.floor((today - d) / (1000*60*60*24));
+                const wk = Math.floor(diffDays / 7);
+                if(wk >= 0 && wk < 4 && w.sport !== 'Strength') {
+                    if(w.sport === 'Swim') weeklyDist[wk].S += (w.distance || 0);
+                    if(w.sport === 'Bike') weeklyDist[wk].B += (w.distance || 0);
+                    if(w.sport === 'Run')  weeklyDist[wk].R += (w.distance || 0);
+                }
+            });
+            weeklyDist.reverse();
+
+            if(chartWeekly) chartWeekly.destroy();
+            chartWeekly = new Chart(document.getElementById('chart-weekly'), {
+                type: 'bar',
+                data: {
+                    labels: ['Wk -3', 'Wk -2', 'Wk -1', 'This Wk'],
+                    datasets: [
+                        { label: 'Swim', data: weeklyDist.map(d=>d.S), backgroundColor: '#0ea5e9' },
+                        { label: 'Bike', data: weeklyDist.map(d=>d.B), backgroundColor: '#eab308' },
+                        { label: 'Run',  data: weeklyDist.map(d=>d.R), backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { stacked: true, grid: {display:false} }, y: { stacked: true, grid: {color: '#334155'} } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 3. Weekly Load
             const weeks = Array(12).fill(0);
-            const today = getStartOfDay(new Date());
             workouts.forEach(w => {
                 const d = new Date(w.date + 'T12:00:00');
                 const diffDays = Math.floor((today - d) / (1000*60*60*24));
@@ -717,7 +708,7 @@
                 }
             });
 
-            // 3. Long Run Pace Progression
+            // 4. Long Run Pace Progression
             const longRuns = workouts.filter(w => w.sport === 'Run' && w.distance >= 10).sort((a,b) => new Date(a.date)-new Date(b.date));
             const paceData = longRuns.map(w => w.durationMins / w.distance);
             const paceLabels = longRuns.map(w => new Date(w.date).toLocaleDateString(undefined,{month:'short',day:'numeric'}));
@@ -737,10 +728,8 @@
             });
         }
 
-        // Calendar Controls
         window.calMove = (offset) => { calDate.setMonth(calDate.getMonth() + offset); renderCalendar(); };
 
-        // Render Interactive Calendar Grid
         function renderCalendar() {
             const grid = document.getElementById('cal-grid');
             document.getElementById('cal-month').textContent = calDate.toLocaleDateString(undefined, {month:'long', year:'numeric'});
@@ -777,7 +766,6 @@
             grid.innerHTML = html;
         }
 
-        // Calendar Plan Detail/Edit Modal Controls
         window.openPlanModal = (planId) => {
             const p = plans.find(x => x.id === planId);
             if(!p) return;
@@ -831,7 +819,6 @@
             });
         }
 
-        // Render Personal Bests
         function renderPBs() {
             const tMap = {
                 'Swim': [0.5, 1, 2, 3, 4, 5],
@@ -876,7 +863,6 @@
             });
         }
 
-        // Tab Navigation Switcher
         window.switchTab = (id) => {
             ['dashboard','plan','pbs','ai'].forEach(t => {
                 document.getElementById(`tab-${t}`).classList.add('hidden');
@@ -891,7 +877,6 @@
             btn.classList.add('text-white', id==='ai'?'bg-purple-600':'bg-blue-600');
         };
 
-        // AI Request Handler
         document.getElementById('ai-btn').addEventListener('click', async () => {
             const key = document.getElementById('ai-key').value.trim();
             if(!key) return showToast('Please enter an API Key', true);
@@ -928,7 +913,8 @@
 3. Future: My planned load next week is ${fWeek1}, and the week after is ${fWeek2}. Give advice on this upcoming block.`;
 
             try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
+                // Now using models/gemini-3.8-flash per Google's latest endpoints
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
