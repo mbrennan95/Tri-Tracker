@@ -325,9 +325,9 @@
  <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Firebase Config (Strict matching)
+    import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+     
+     // Firebase Config (Strict matching)
         const firebaseConfig = {
             apiKey: "AIzaSyDqjhAnOfBT_53ie7BWmbCT_Y1QeAZk1WI",
             authDomain: "tri-tracker-a0429.firebaseapp.com",
@@ -525,211 +525,136 @@
             }
         });
 
-        // Add Plan
-        document.getElementById('plan-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if(!currentUser) return;
-            const btn = document.getElementById('p-submit');
-            btn.disabled = true; btn.textContent = 'Adding...';
+// Add Plan (Supports Repeating Weeks & Time of Day)
+document.getElementById('plan-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!currentUser) return;
+    const btn = document.getElementById('p-submit');
+    btn.disabled = true; btn.textContent = 'Adding...';
 
-            const data = {
-                date: document.getElementById('p-date').value,
-                sport: document.getElementById('p-sport').value,
-                dist: parseFloat(document.getElementById('p-dist').value)||0,
-                dur: parseFloat(document.getElementById('p-dur').value),
-                rpe: parseInt(document.getElementById('p-rpe').value),
-                focus: document.getElementById('p-focus').value.trim()
-            };
+    const startDateStr = document.getElementById('p-date').value;
+    const weeksToRepeat = parseInt(document.getElementById('p-repeat').value) || 1;
 
-            try {
-                await addDoc(collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans'), data);
-                showToast('Plan added!');
-                document.getElementById('p-focus').value='';
-                document.getElementById('p-dur').value='';
-            } catch(e) {
-                showToast('Failed to add plan', true);
-            } finally {
-                btn.disabled = false; btn.textContent = 'Add to Plan';
-            }
-        });
+    const baseData = {
+        sport: document.getElementById('p-sport').value,
+        timeOfDay: document.getElementById('p-time').value,
+        dist: parseFloat(document.getElementById('p-dist').value) || 0,
+        dur: parseFloat(document.getElementById('p-dur').value),
+        rpe: parseInt(document.getElementById('p-rpe').value),
+        focus: document.getElementById('p-focus').value.trim()
+    };
 
-        // Global Delete
-        window.delDoc = async (col, id) => {
-            if(!currentUser) return;
-            try { await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, col, id)); }
-            catch(e) { showToast('Delete failed', true); }
-        };
-
-        function renderFeed() {
-            const list = document.getElementById('feed-list');
-            const term = DOM.fSearch.value.toLowerCase();
-            const sport = DOM.fSport.value;
-            const showAll = DOM.fAllTime.checked;
-            const cutoff = daysAgo(14);
-
-            let html = '';
-            let count = 0;
-
-            workouts.forEach(w => {
-                const wDate = new Date(w.date + 'T12:00:00'); // avoid timezone shift
-                if (!showAll && !term && wDate < cutoff) return;
-                if (sport !== 'All' && w.sport !== sport) return;
-                if (term && !(w.notes||'').toLowerCase().includes(term) && !(w.subType||'').toLowerCase().includes(term)) return;
-
-                count++;
-                const colorMap = { 'Swim': 'sky', 'Bike': 'yellow', 'Run': 'red', 'Strength': 'emerald' };
-                const c = colorMap[w.sport] || 'slate';
-
-                let pace = '--';
-                if(w.distance > 0 && w.durationMins > 0) {
-                    if(w.sport === 'Bike') pace = (w.distance / (w.durationMins/60)).toFixed(1) + ' km/h';
-                    else {
-                        const mPerU = w.durationMins / (w.sport==='Swim' ? w.distance*10 : w.distance);
-                        const mins = Math.floor(mPerU);
-                        const secs = Math.round((mPerU - mins)*60);
-                        pace = `${mins}:${secs.toString().padStart(2,'0')} /${w.sport==='Swim'?'100m':'km'}`;
-                    }
-                }
-
-                html += `
-                <div class="bg-slate-800/40 p-4 rounded-xl border border-${c}-500/20 hover:bg-slate-700/50 transition-colors group relative">
-                    <button onclick="delDoc('workouts', '${w.id}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-                    <div class="flex items-center gap-2 mb-2">
-                        <div class="w-2 h-2 rounded-full bg-${c}-400"></div>
-                        <h4 class="font-semibold text-slate-200 text-sm">${w.sport} <span class="text-slate-400 font-normal ml-1">| ${w.subType}</span></h4>
-                        <span class="text-xs text-slate-500 ml-auto mr-4">${new Date(w.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2 text-center text-xs">
-                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Dist</div><div class="text-slate-300 font-medium">${w.sport==='Strength'?'-':w.distance+'k'}</div></div>
-                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Time</div><div class="text-slate-300 font-medium">${w.durationStr || Math.round(w.durationMins)+'m'}</div></div>
-                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Pace</div><div class="text-slate-300 font-medium">${pace}</div></div>
-                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">RPE</div><div class="text-slate-300 font-medium">${w.rpe}/10</div></div>
-                    </div>
-                    ${w.notes ? `<p class="text-xs text-slate-400 mt-2 border-l-2 border-slate-600 pl-2 italic">${w.notes}</p>` : ''}
-                </div>`;
-            });
-
-            list.innerHTML = count ? html : `<div class="text-slate-500 text-center text-sm mt-8">No workouts match criteria.</div>`;
-        }
-
-        function renderCharts() {
-            // Chart.js global defaults
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.font.family = 'Inter';
-
-            // 1. Yearly Volume (Stacked Bar)
-            const yearData = Array(12).fill(0).map(()=>({S:0, B:0, R:0}));
-            const currYear = new Date().getFullYear();
-            workouts.forEach(w => {
-                const d = new Date(w.date + 'T12:00:00');
-                if(d.getFullYear() === currYear && w.sport !== 'Strength') {
-                    const m = d.getMonth();
-                    if(w.sport==='Swim') yearData[m].S += w.distance;
-                    if(w.sport==='Bike') yearData[m].B += w.distance;
-                    if(w.sport==='Run')  yearData[m].R += w.distance;
-                }
-            });
-
-            if(chartVol) chartVol.destroy();
-            chartVol = new Chart(document.getElementById('chart-yearly'), {
-                type: 'bar',
-                data: {
-                    labels: ['J','F','M','A','M','J','J','A','S','O','N','D'],
-                    datasets: [
-                        { label: 'Swim', data: yearData.map(d=>d.S), backgroundColor: '#0ea5e9' },
-                        { label: 'Bike', data: yearData.map(d=>d.B), backgroundColor: '#eab308' },
-                        { label: 'Run',  data: yearData.map(d=>d.R), backgroundColor: '#ef4444' }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { stacked: true, grid: {display:false} }, y: { stacked: true, grid: {color: '#334155'} } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-
-            // 2. Weekly Load (Line/Bar)
-            const weeks = Array(12).fill(0);
-            const today = getStartOfDay(new Date());
-            workouts.forEach(w => {
-                const d = new Date(w.date + 'T12:00:00');
-                const diffDays = Math.floor((today - d) / (1000*60*60*24));
-                const wk = Math.floor(diffDays / 7);
-                if(wk >= 0 && wk < 12) weeks[wk] += (w.durationMins * w.rpe);
-            });
-            weeks.reverse(); // Oldest to newest
-
-            if(chartLoad) chartLoad.destroy();
-            chartLoad = new Chart(document.getElementById('chart-load'), {
-                type: 'bar',
-                data: {
-                    labels: Array(12).fill(0).map((_,i) => `Wk -${11-i}`),
-                    datasets: [{ label: 'Load', data: weeks, backgroundColor: '#8b5cf6', borderRadius: 4 }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { grid: {display:false} }, y: { grid: {color: '#334155'} } },
-                    plugins: { legend: { display: false } }
-                }
-            });
-
-            // 3. Pace Progression (Line) - For simplicity, tracking Run >= 10km
-            const longRuns = workouts.filter(w => w.sport === 'Run' && w.distance >= 10).sort((a,b) => new Date(a.date)-new Date(b.date));
-            const paceData = longRuns.map(w => w.durationMins / w.distance); // min/km
-            const paceLabels = longRuns.map(w => new Date(w.date).toLocaleDateString(undefined,{month:'short',day:'numeric'}));
-
-            if(chartPace) chartPace.destroy();
-            chartPace = new Chart(document.getElementById('chart-pace'), {
-                type: 'line',
-                data: {
-                    labels: paceLabels,
-                    datasets: [{ label: 'Run Pace (>10k)', data: paceData, borderColor: '#ef4444', tension: 0.3, pointBackgroundColor: '#ef4444' }]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { x: { grid: {display:false} }, y: { reverse: true, title: {display:true, text:'min/km'}, grid: {color: '#334155'} } },
-                    plugins: { legend: { display: false } }
-                }
+    try {
+        const [year, month, day] = startDateStr.split('-').map(Number);
+        
+        for (let w = 0; w < weeksToRepeat; w++) {
+            const planDate = new Date(year, month - 1, day + (w * 7));
+            const dateISO = `${planDate.getFullYear()}-${String(planDate.getMonth() + 1).padStart(2, '0')}-${String(planDate.getDate()).padStart(2, '0')}`;
+            
+            await addDoc(collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans'), {
+                ...baseData,
+                date: dateISO
             });
         }
+        
+        showToast(weeksToRepeat > 1 ? `Plan repeated across ${weeksToRepeat} weeks!` : 'Plan added!');
+        document.getElementById('p-focus').value = '';
+        document.getElementById('p-dur').value = '';
+        document.getElementById('p-dist').value = '';
+    } catch(e) {
+        showToast('Failed to add plan', true);
+    } finally {
+        btn.disabled = false; btn.textContent = 'Add to Plan';
+    }
+});
 
-        window.calMove = (offset) => { calDate.setMonth(calDate.getMonth() + offset); renderCalendar(); };
+// Render Calendar Grid with Time Badges & Click-to-Open Modal
+function renderCalendar() {
+    const grid = document.getElementById('cal-grid');
+    document.getElementById('cal-month').textContent = calDate.toLocaleDateString(undefined, {month:'long', year:'numeric'});
 
-        function renderCalendar() {
-            const grid = document.getElementById('cal-grid');
-            document.getElementById('cal-month').textContent = calDate.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+    const y = calDate.getFullYear();
+    const m = calDate.getMonth();
+    const firstDay = new Date(y, m, 1).getDay();
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const today = new Date();
 
-            const y = calDate.getFullYear();
-            const m = calDate.getMonth();
-            const firstDay = new Date(y, m, 1).getDay();
-            const daysInMonth = new Date(y, m + 1, 0).getDate();
-            const today = new Date();
+    let html = '';
+    for(let i=0; i<firstDay; i++) html += `<div class="bg-slate-900/30 border-r border-b border-slate-700/30"></div>`;
 
-            let html = '';
-            for(let i=0; i<firstDay; i++) html += `<div class="bg-slate-900/30 border-r border-b border-slate-700/30"></div>`;
+    for(let d=1; d<=daysInMonth; d++) {
+        const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isToday = d===today.getDate() && m===today.getMonth() && y===today.getFullYear();
 
-            for(let d=1; d<=daysInMonth; d++) {
-                const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const isToday = d===today.getDate() && m===today.getMonth() && y===today.getFullYear();
+        const dPlans = plans.filter(p => p.date === dateStr);
+        const pBlocks = dPlans.map(p => {
+            const c = p.sport==='Swim'?'sky':(p.sport==='Bike'?'yellow':(p.sport==='Run'?'red':'emerald'));
+            const timeTag = p.timeOfDay ? `<span class="opacity-75 font-mono text-[8px] mr-1">[${p.timeOfDay.charAt(0)}]</span>` : '';
+            return `
+            <div onclick="openPlanModal('${p.id}')" class="cursor-pointer relative group text-[10px] leading-tight p-1 mb-1 rounded-md border-l-2 border-${c}-500 bg-${c}-500/10 hover:bg-${c}-500/20 text-${c}-300 transition-all overflow-hidden text-ellipsis whitespace-nowrap shadow-sm">
+                ${timeTag}<strong>${p.sport.charAt(0)}:</strong> ${p.focus || p.dur + 'm'}
+            </div>`;
+        }).join('');
 
-                const dPlans = plans.filter(p => p.date === dateStr);
-                const pBlocks = dPlans.map(p => {
-                    const c = p.sport==='Swim'?'sky':(p.sport==='Bike'?'yellow':(p.sport==='Run'?'red':'emerald'));
-                    return `
-                    <div class="relative group text-[9px] leading-tight p-0.5 mb-0.5 rounded border-l-2 border-${c}-500 bg-${c}-500/10 text-${c}-400 overflow-hidden text-ellipsis whitespace-nowrap">
-                        ${p.sport.charAt(0)}: ${p.focus||p.dur+'m'}
-                        <button onclick="delDoc('plans','${p.id}')" class="hidden group-hover:block absolute right-0 top-0 bg-slate-800 px-1 text-red-400 hover:text-red-300">x</button>
-                    </div>`;
-                }).join('');
+        html += `
+        <div class="bg-slate-900/60 border-r border-b border-slate-700/30 p-1.5 min-h-[90px] flex flex-col hover:bg-slate-800/80 transition-colors">
+            <div class="text-right mb-1"><span class="inline-flex w-5 h-5 items-center justify-center text-xs ${isToday?'bg-blue-600 text-white rounded-full font-bold':'text-slate-400'}">${d}</span></div>
+            <div class="flex-1 overflow-y-auto no-scrollbar">${pBlocks}</div>
+        </div>`;
+    }
+    grid.innerHTML = html;
+}
 
-                html += `
-                <div class="bg-slate-900/60 border-r border-b border-slate-700/30 p-1 min-h-[80px] flex flex-col hover:bg-slate-800/80 transition-colors">
-                    <div class="text-right mb-1"><span class="inline-flex w-5 h-5 items-center justify-center text-xs ${isToday?'bg-blue-600 text-white rounded-full font-bold':'text-slate-400'}">${d}</span></div>
-                    <div class="flex-1 overflow-y-auto no-scrollbar">${pBlocks}</div>
-                </div>`;
-            }
-            grid.innerHTML = html;
-        }
+// Modal Functions (Global window scope)
+window.openPlanModal = (planId) => {
+    const p = plans.find(x => x.id === planId);
+    if(!p) return;
+
+    document.getElementById('pm-id').value = p.id;
+    document.getElementById('pm-date-display').textContent = `Scheduled for: ${p.date}`;
+    document.getElementById('pm-sport').value = p.sport || 'Run';
+    document.getElementById('pm-time').value = p.timeOfDay || 'Morning';
+    document.getElementById('pm-dist').value = p.dist || 0;
+    document.getElementById('pm-dur').value = p.dur || 0;
+    document.getElementById('pm-rpe').value = p.rpe || 5;
+    document.getElementById('pm-focus').value = p.focus || '';
+
+    document.getElementById('plan-modal').classList.remove('hidden');
+};
+
+window.closePlanModal = () => {
+    document.getElementById('plan-modal').classList.add('hidden');
+};
+
+window.deleteModalPlan = async () => {
+    const id = document.getElementById('pm-id').value;
+    if(!id) return;
+    await window.delDoc('plans', id);
+    closePlanModal();
+};
+
+document.getElementById('pm-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!currentUser) return;
+
+    const id = document.getElementById('pm-id').value;
+    const data = {
+        sport: document.getElementById('pm-sport').value,
+        timeOfDay: document.getElementById('pm-time').value,
+        dist: parseFloat(document.getElementById('pm-dist').value) || 0,
+        dur: parseFloat(document.getElementById('pm-dur').value),
+        rpe: parseInt(document.getElementById('pm-rpe').value),
+        focus: document.getElementById('pm-focus').value.trim()
+    };
+
+    try {
+        await updateDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans', id), data);
+        showToast('Plan updated!');
+        closePlanModal();
+    } catch(err) {
+        showToast('Update failed', true);
+    }
+});
 
         function renderPBs() {
             const tMap = {
