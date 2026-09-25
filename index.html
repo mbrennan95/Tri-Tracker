@@ -417,8 +417,10 @@
         DOM.wSport.addEventListener('change', updateSubTypes);
         updateSubTypes();
 
-        // Feed Filters
-        [DOM.fSearch, DOM.fSport, DOM.fAllTime].forEach(el => el.addEventListener('input', renderFeed));
+       // Feed Filters
+[DOM.fSearch, DOM.fSport, DOM.fAllTime].forEach(el => {
+    if (el) el.addEventListener('input', () => renderFeed());
+});
 
         // Auth
         DOM.loginBtn.addEventListener('click', async () => {
