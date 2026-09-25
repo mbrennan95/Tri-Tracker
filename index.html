@@ -1,182 +1,334 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TriSmart - Triathlon Training AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body class="bg-gray-900 text-white min-h-screen font-sans">
+    <title>TriSmart - Triathlon Tracker</title>
 
-    <!-- Header & Navigation -->
-    <header class="bg-gray-800 p-4 shadow-md sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold text-blue-500">TriSmart</h1>
-            <div id="authSection" class="flex gap-4 items-center">
-                <span id="userEmail" class="text-sm text-gray-400">Loading...</span>
-                <button id="googleLoginBtn" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded text-sm font-bold">Sign in with Google</button>
-                <button id="logoutBtn" class="hidden bg-red-600 hover:bg-red-700 px-4 py-2 rounded text-sm font-bold">Log Out</button>
-            </div>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                        accent: { swim: '#0ea5e9', bike: '#eab308', run: '#ef4444', strength: '#10b981' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #0ea5e9; border-radius: 50%;
+            width: 24px; height: 24px; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .toast {
+            transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+            transform: translateY(100%); opacity: 0;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center overflow-x-hidden pb-12">
+
+    <header class="w-full max-w-7xl flex justify-between items-center p-4 md:p-8">
+        <div>
+            <h1 class="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-teal-400 to-green-400 flex items-center gap-3">
+                <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                TriSmart
+            </h1>
+            <p class="text-slate-400 mt-1 text-sm">Elite Multisport Analytics</p>
         </div>
-        
-        <!-- Tabs Navigation -->
-        <div class="max-w-4xl mx-auto mt-4 flex space-x-2 overflow-x-auto">
-            <button onclick="switchTab('dashboard')" class="tab-btn bg-blue-600 px-4 py-2 rounded-t font-bold text-sm">Dashboard</button>
-            <button onclick="switchTab('planner')" class="tab-btn bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-t font-bold text-sm">Planner</button>
-            <button onclick="switchTab('pbs')" class="tab-btn bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-t font-bold text-sm">Personal Bests</button>
-            <button onclick="switchTab('ai')" class="tab-btn bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-t font-bold text-sm">AI Coach</button>
+        <div class="flex items-center gap-4">
+            <button id="login-btn" class="px-4 py-2 bg-white text-slate-900 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Sign in with Google
+            </button>
+            <div id="user-info" class="hidden flex items-center gap-4">
+                <span id="user-name" class="text-sm text-slate-300 font-medium"></span>
+                <button id="logout-btn" class="px-3 py-1.5 bg-slate-800 text-slate-400 hover:text-white rounded border border-slate-700 transition-colors text-xs">Sign Out</button>
+            </div>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-4">
+    <!-- Initial Welcome State (Logged Out) -->
+    <div id="logged-out-view" class="flex-1 flex flex-col items-center justify-center p-8 w-full max-w-2xl text-center">
+        <div class="glass-panel p-8 rounded-2xl">
+            <h2 class="text-2xl font-semibold mb-4">Welcome to TriSmart</h2>
+            <p class="text-slate-400 mb-8 leading-relaxed">Sign in with Google to access your personalized training dashboard, plan upcoming sessions, calculate personal bests, and get AI-driven coaching insights.</p>
+        </div>
+    </div>
 
-        <!-- ================= DASHBOARD TAB ================= -->
-        <div id="dashboard" class="tab-content block">
-            <!-- Add Workout Form -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
-                <h2 class="text-xl font-bold mb-4">Log Session</h2>
-                <form id="workoutForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-gray-400 text-sm mb-1">Date</label>
-                        <input type="date" id="workoutDate" required class="w-full bg-gray-700 p-2 rounded">
-                    </div>
-                    <div>
-                        <label class="block text-gray-400 text-sm mb-1">Sport</label>
-                        <select id="workoutSport" required class="w-full bg-gray-700 p-2 rounded">
-                            <option value="Run">Run</option>
-                            <option value="Bike">Bike</option>
-                            <option value="Swim">Swim</option>
-                            <option value="Strength">Strength</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-gray-400 text-sm mb-1">Distance (km)</label>
-                        <input type="number" step="0.01" id="workoutDistance" placeholder="e.g. 5.5" class="w-full bg-gray-700 p-2 rounded">
-                    </div>
-                    
-                    <!-- NEW DURATION FORMAT -->
-                    <div>
-                        <label class="block text-gray-400 text-sm mb-1">Duration</label>
-                        <div class="grid grid-cols-3 gap-2">
-                            <input type="number" id="workoutHours" placeholder="Hrs" class="w-full bg-gray-700 p-2 rounded">
-                            <input type="number" id="workoutMins" placeholder="Min" class="w-full bg-gray-700 p-2 rounded">
-                            <input type="number" id="workoutSecs" placeholder="Sec" class="w-full bg-gray-700 p-2 rounded">
+    <!-- Main App Container (Logged In) -->
+    <div id="logged-in-view" class="w-full max-w-7xl px-4 md:px-8 hidden flex-col gap-6">
+
+        <!-- Tab Navigation -->
+        <div class="flex gap-2 overflow-x-auto pb-2 border-b border-slate-700/50">
+            <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium text-sm transition-colors shadow-lg">Dashboard</button>
+            <button onclick="switchTab('plan')" id="tab-btn-plan" class="px-5 py-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white font-medium text-sm transition-colors">Planner</button>
+            <button onclick="switchTab('pbs')" id="tab-btn-pbs" class="px-5 py-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white font-medium text-sm transition-colors">Personal Bests</button>
+            <button onclick="switchTab('ai')" id="tab-btn-ai" class="px-5 py-2.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white font-medium text-sm transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                AI Coach
+            </button>
+        </div>
+
+        <!-- DASHBOARD TAB -->
+        <div id="tab-dashboard" class="flex flex-col gap-6 w-full">
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="glass-panel p-5 rounded-2xl shadow-xl col-span-1 flex flex-col h-[300px]">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2">Yearly Volume (KM)</h3>
+                    <div class="flex-1 relative w-full h-full"><canvas id="chart-yearly"></canvas></div>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl shadow-xl col-span-1 flex flex-col h-[300px]">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2">12-Week Load Progression</h3>
+                    <div class="flex-1 relative w-full h-full"><canvas id="chart-load"></canvas></div>
+                </div>
+                <div class="glass-panel p-5 rounded-2xl shadow-xl col-span-1 flex flex-col h-[300px]">
+                    <h3 class="text-sm font-semibold text-slate-300 mb-2">Pace Progression (Long Efforts)</h3>
+                    <div class="flex-1 relative w-full h-full"><canvas id="chart-pace"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Input & Feed Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Log Form -->
+                <div class="glass-panel p-6 rounded-2xl shadow-xl lg:col-span-1 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-green-500"></div>
+                    <h2 class="text-lg font-semibold mb-5 text-white flex items-center gap-2">Log Workout</h2>
+
+                    <form id="workout-form" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Date</label>
+                            <input type="date" id="w-date" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Sport</label>
+                                <select id="w-sport" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                                    <option value="Swim">Swim</option>
+                                    <option value="Bike" selected>Bike</option>
+                                    <option value="Run">Run</option>
+                                    <option value="Strength">Strength</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Sub-Type</label>
+                                <select id="w-type" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500"></select>
+                            </div>
+                        </div>
+
+                        <div id="w-dist-container">
+                            <label class="block text-xs text-slate-400 mb-1">Distance (km)</label>
+                            <input type="number" step="0.01" min="0" id="w-distance" placeholder="0.00" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Duration</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <input type="number" id="w-hrs" min="0" placeholder="HH" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 text-center">
+                                <input type="number" id="w-mins" min="0" max="59" placeholder="MM" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 text-center">
+                                <input type="number" id="w-secs" min="0" max="59" placeholder="SS" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 text-center">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Avg HR</label>
+                                <input type="number" min="0" id="w-hr" placeholder="bpm" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">RPE (1-10)</label>
+                                <input type="number" min="1" max="10" id="w-rpe" required placeholder="Scale 1-10" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Notes</label>
+                            <textarea id="w-notes" rows="2" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm outline-none text-white focus:border-blue-500 resize-none"></textarea>
+                        </div>
+
+                        <button type="submit" id="w-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded transition-colors text-sm">Save Session</button>
+                    </form>
+                </div>
+
+                <!-- Feed -->
+                <div class="glass-panel p-6 rounded-2xl shadow-xl lg:col-span-2 flex flex-col min-h-[600px]">
+                    <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-700/50 pb-4 gap-3">
+                        <h2 class="text-lg font-semibold text-white">Training Feed</h2>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <input type="text" id="f-search" placeholder="Search notes..." class="bg-slate-800 border border-slate-600 rounded px-3 py-1.5 text-xs text-white outline-none w-32 md:w-40">
+                            <select id="f-sport" class="bg-slate-800 border border-slate-600 rounded px-2 py-1.5 text-xs text-white outline-none">
+                                <option value="All">All Sports</option>
+                                <option value="Swim">Swim</option>
+                                <option value="Bike">Bike</option>
+                                <option value="Run">Run</option>
+                                <option value="Strength">Strength</option>
+                            </select>
+                            <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer select-none">
+                                <input type="checkbox" id="f-alltime" class="accent-blue-500 w-3.5 h-3.5"> Show All-Time
+                            </label>
                         </div>
                     </div>
-
-                    <div>
-                        <label class="block text-gray-400 text-sm mb-1">Intensity (RPE 1-10)</label>
-                        <input type="number" id="workoutRPE" min="1" max="10" required class="w-full bg-gray-700 p-2 rounded">
+                    <div id="feed-list" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                        <div class="flex flex-col items-center justify-center h-full text-slate-400">
+                            <div class="loading-spinner mb-3"></div>
+                            <p class="text-sm">Loading feed...</p>
+                        </div>
                     </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-gray-400 text-sm mb-1">Session Type / Notes</label>
-                        <input type="text" id="workoutNotes" placeholder="e.g. Interval training, Tempo run..." class="w-full bg-gray-700 p-2 rounded">
+                </div>
+            </div>
+        </div>
+
+        <!-- PLANNER TAB -->
+        <div id="tab-plan" class="hidden flex-col gap-6 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Add Plan Form -->
+                <div class="glass-panel p-6 rounded-2xl shadow-xl lg:col-span-1 h-fit">
+                    <h3 class="text-lg font-semibold text-white mb-4 border-b border-slate-700 pb-2">Schedule Session</h3>
+                    <form id="plan-form" class="space-y-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Date</label>
+                            <input type="date" id="p-date" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Sport</label>
+                            <select id="p-sport" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
+                                <option value="Swim">Swim</option><option value="Bike">Bike</option><option value="Run">Run</option><option value="Strength">Strength</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Est. Dist (km)</label>
+                                <input type="number" step="0.1" min="0" id="p-dist" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Est. Dur (m)</label>
+                                <input type="number" min="0" id="p-dur" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Target RPE (1-10)</label>
+                            <input type="number" min="1" max="10" id="p-rpe" required class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Focus</label>
+                            <input type="text" id="p-focus" placeholder="e.g. Intervals" class="w-full bg-slate-800 border border-slate-600 rounded p-2 text-sm text-white outline-none">
+                        </div>
+                        <button type="submit" id="p-submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded transition-colors text-sm">Add to Plan</button>
+                    </form>
+                </div>
+
+                <!-- Calendar View -->
+                <div class="glass-panel rounded-2xl shadow-xl lg:col-span-3 flex flex-col overflow-hidden min-h-[600px]">
+                    <div class="flex justify-between items-center p-4 border-b border-slate-700/50 bg-slate-800/40">
+                        <button onclick="calMove(-1)" class="p-2 hover:bg-slate-700 rounded text-slate-400 hover:text-white transition-colors border border-slate-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <h3 id="cal-month" class="text-lg font-bold text-white tracking-wider">Month Year</h3>
+                        <button onclick="calMove(1)" class="p-2 hover:bg-slate-700 rounded text-slate-400 hover:text-white transition-colors border border-slate-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
                     </div>
-                    <div class="md:col-span-2">
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 p-3 rounded font-bold">Save Workout</button>
+
+                    <div class="grid grid-cols-7 border-b border-slate-700/50 bg-slate-800/20">
+                        <div class="py-2 text-center text-xs font-semibold text-slate-400">SUN</div>
+                        <div class="py-2 text-center text-xs font-semibold text-slate-400">MON</div>
+                        <div class="py-2 text-center text-xs font-semibold text-slate-400">TUE</div>
+                        <div class="py-2 text-center text-xs font-semibold text-slate-400">WED</div>
+                        <div class="py-2 text-center text-xs font-semibold text-slate-400">THU</div>
+                        <div class="py-2 text-center text-xs font-semibold text-slate-400">FRI</div>
+                        <div class="py-2 text-center text-xs font-semibold text-slate-400">SAT</div>
                     </div>
-                </form>
-            </div>
 
-            <!-- Dashboard Charts -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="font-bold text-center mb-2">Weekly Volume (KM)</h3>
-                    <canvas id="volumeChart"></canvas>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg">
-                    <h3 class="font-bold text-center mb-2">Yearly Progression</h3>
-                    <canvas id="yearlyChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Feed Filter & List -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                    <h2 class="text-xl font-bold">Recent Workouts</h2>
-                    <label class="flex items-center space-x-2 text-sm text-gray-400 cursor-pointer">
-                        <input type="checkbox" id="showAllTimeToggle" class="rounded bg-gray-700">
-                        <span>Show All-Time</span>
-                    </label>
-                </div>
-                <div id="feedList" class="space-y-3 max-h-96 overflow-y-auto">
-                    <p class="text-gray-400">Loading workouts...</p>
+                    <div id="cal-grid" class="grid grid-cols-7 flex-1 auto-rows-fr bg-slate-700/30 gap-[1px]"></div>
                 </div>
             </div>
         </div>
 
-        <!-- ================= PLANNER TAB ================= -->
-        <div id="planner" class="tab-content hidden bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-bold mb-4">Training Calendar (Next 14 Days)</h2>
-            <p class="text-gray-400 text-sm mb-4">Plan your upcoming sessions here. The AI Coach will review this schedule.</p>
-            <div id="calendarGrid" class="grid grid-cols-7 gap-2 text-center text-sm">
-                <!-- Calendar dynamically generated by JS -->
-            </div>
-        </div>
+        <!-- PERSONAL BESTS TAB -->
+        <div id="tab-pbs" class="hidden flex-col gap-6 w-full">
+            <div class="glass-panel p-8 rounded-2xl shadow-xl w-full">
+                <h2 class="text-xl font-semibold mb-2 text-white flex items-center gap-2">Estimated Personal Bests</h2>
+                <p class="text-sm text-slate-400 mb-8">Calculated intelligently by projecting your best average pace from sessions that meet or exceed these distances.</p>
 
-        <!-- ================= PERSONAL BESTS TAB ================= -->
-        <div id="pbs" class="tab-content hidden bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-bold mb-6 text-blue-400">Estimated Personal Bests</h2>
-            <p class="text-sm text-gray-400 mb-4">Automatically calculated based on your average paces from logged sessions of equal or greater distance.</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Swim -->
-                <div class="bg-gray-700 p-4 rounded">
-                    <h3 class="font-bold text-blue-300 border-b border-gray-600 pb-2 mb-2">🏊‍♂️ Swim</h3>
-                    <ul id="pb-swim" class="space-y-2 text-sm">
-                        <li class="flex justify-between"><span>500m</span> <span id="pb-swim-0.5">--</span></li>
-                        <li class="flex justify-between"><span>1km</span> <span id="pb-swim-1">--</span></li>
-                        <li class="flex justify-between"><span>2km</span> <span id="pb-swim-2">--</span></li>
-                        <li class="flex justify-between"><span>3.8km (IM)</span> <span id="pb-swim-3.8">--</span></li>
-                    </ul>
-                </div>
-                <!-- Bike -->
-                <div class="bg-gray-700 p-4 rounded">
-                    <h3 class="font-bold text-yellow-300 border-b border-gray-600 pb-2 mb-2">🚴‍♂️ Bike</h3>
-                    <ul id="pb-bike" class="space-y-2 text-sm">
-                        <li class="flex justify-between"><span>20km</span> <span id="pb-bike-20">--</span></li>
-                        <li class="flex justify-between"><span>50km</span> <span id="pb-bike-50">--</span></li>
-                        <li class="flex justify-between"><span>100km</span> <span id="pb-bike-100">--</span></li>
-                        <li class="flex justify-between"><span>180km (IM)</span> <span id="pb-bike-180">--</span></li>
-                        <li class="flex justify-between"><span>200km</span> <span id="pb-bike-200">--</span></li>
-                    </ul>
-                </div>
-                <!-- Run -->
-                <div class="bg-gray-700 p-4 rounded">
-                    <h3 class="font-bold text-red-300 border-b border-gray-600 pb-2 mb-2">🏃‍♂️ Run</h3>
-                    <ul id="pb-run" class="space-y-2 text-sm">
-                        <li class="flex justify-between"><span>1.6km (1mi)</span> <span id="pb-run-1.6">--</span></li>
-                        <li class="flex justify-between"><span>5km</span> <span id="pb-run-5">--</span></li>
-                        <li class="flex justify-between"><span>10km</span> <span id="pb-run-10">--</span></li>
-                        <li class="flex justify-between"><span>21.1km</span> <span id="pb-run-21.1">--</span></li>
-                        <li class="flex justify-between"><span>42.2km</span> <span id="pb-run-42.2">--</span></li>
-                    </ul>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-slate-800/40 rounded-xl p-5 border border-sky-500/20">
+                        <h3 class="text-sky-400 font-semibold mb-4 border-b border-slate-700 pb-2">Swimming</h3>
+                        <div id="pb-swim" class="space-y-3"></div>
+                    </div>
+                    <div class="bg-slate-800/40 rounded-xl p-5 border border-yellow-500/20">
+                        <h3 class="text-yellow-400 font-semibold mb-4 border-b border-slate-700 pb-2">Cycling</h3>
+                        <div id="pb-bike" class="space-y-3"></div>
+                    </div>
+                    <div class="bg-slate-800/40 rounded-xl p-5 border border-red-500/20">
+                        <h3 class="text-red-400 font-semibold mb-4 border-b border-slate-700 pb-2">Running</h3>
+                        <div id="pb-run" class="space-y-3"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- ================= AI COACH TAB ================= -->
-        <div id="ai" class="tab-content hidden bg-gray-800 p-6 rounded-lg shadow-lg">
-            <h2 class="text-xl font-bold mb-4 text-purple-400">Gemini AI Coach</h2>
-            <div class="mb-4">
-                <label class="block text-gray-400 text-sm mb-1">Google Gemini API Key (starts with AIza or AQ.)</label>
-                <input type="password" id="geminiApiKey" class="w-full bg-gray-700 p-2 rounded border border-gray-600" placeholder="Paste key here...">
+        <!-- AI COACH TAB -->
+        <div id="tab-ai" class="hidden flex-col gap-6 w-full">
+            <div class="glass-panel p-8 rounded-2xl shadow-xl w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="lg:col-span-1 space-y-4">
+                    <h2 class="text-xl font-semibold text-white flex items-center gap-2 mb-4">
+                        <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        Pro AI Coach
+                    </h2>
+                    <p class="text-xs text-slate-400 mb-4">Coach parses your last 4 weeks of load, MTD volume, and 2-week upcoming planner to offer tailored progression advice.</p>
+
+                    <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                        <label class="block text-xs font-medium text-slate-400 mb-2">Gemini API Key</label>
+                        <input type="password" id="ai-key" placeholder="Starts with AIza or AQ..." class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-sm outline-none text-white mb-3">
+                        <button id="ai-btn" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-2.5 rounded-lg transition-colors text-sm shadow-lg">Analyze My Week</button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div id="ai-output" class="bg-slate-900/80 rounded-xl p-6 border border-purple-500/30 min-h-[300px] flex flex-col relative text-sm leading-relaxed text-slate-300 whitespace-pre-wrap">
+                        Awaiting input. Enter your API key and click "Analyze" to generate a comprehensive training review.
+                    </div>
+                </div>
             </div>
-            <button id="analyzeBtn" class="bg-purple-600 hover:bg-purple-700 w-full py-3 rounded font-bold transition">Analyze My Training</button>
-            <div id="aiResponse" class="mt-6 p-4 bg-gray-700 rounded whitespace-pre-wrap hidden"></div>
         </div>
 
-    </main>
+    </div>
 
-    <!-- FIREBASE & APP LOGIC -->
+    <!-- Custom Toast UI -->
+    <div id="toast" class="toast fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-3 rounded shadow-xl border border-slate-700 z-50 flex items-center gap-2 text-sm font-medium">
+        <span id="toast-msg"></span>
+    </div>
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // YOUR EXACT FIREBASE CREDENTIALS
-        const firebaseConfig = {
+        // Firebase Config (Strict matching)
+       const firebaseConfig = {
             apiKey: "AIzaSyDqjhAnOfBT_53ie7BWmbCT_Y1QeAZk1WI",
             authDomain: "tri-tracker-a0429.firebaseapp.com",
             projectId: "tri-tracker-a0429",
@@ -184,216 +336,516 @@
             messagingSenderId: "58441123151",
             appId: "1:58441123151:web:da96263fe260141a86b13a"
         };
+  apiKey: "AIzaSyDqjhAnOfBT_53ie7BWmbCT_Y1QeAZk1WI",
+  authDomain: "tri-tracker-a0429.firebaseapp.com",
+  projectId: "tri-tracker-a0429",
+  storageBucket: "tri-tracker-a0429.firebasestorage.app",
+  messagingSenderId: "58441123151",
+  appId: "1:58441123151:web:da96263fe260141a86b13a"
+};
+
+        const APP_ID = 'tri-smart'; // Required for strict paths rules
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let globalWorkouts = [];
+        // State & Listeners
+        let currentUser = null;
+        let workouts = [];
+        let plans = [];
+        let unsubWorkouts = null;
+        let unsubPlans = null;
+        let calDate = new Date();
 
-        // Tab Switching Logic
-        window.switchTab = function(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.tab-btn').forEach(el => {
-                el.classList.remove('bg-blue-600');
-                el.classList.add('bg-gray-700');
-            });
-            document.getElementById(tabId).classList.remove('hidden');
-            event.target.classList.remove('bg-gray-700');
-            event.target.classList.add('bg-blue-600');
-            
-            if (tabId === 'pbs') calculatePBs();
-            if (tabId === 'planner') renderCalendar();
+        // Chart Instances
+        let chartVol = null;
+        let chartLoad = null;
+        let chartPace = null;
+
+        // Configuration
+        const sportSubs = {
+            'Swim': ['Long', 'Tempo', 'Interval', 'Recovery', 'Technique', 'Open Water', 'Race'],
+            'Bike': ['Long Ride', 'Tempo', 'Interval', 'Recovery', 'Indoor', 'Race'],
+            'Run':  ['Long Run', 'Tempo', 'Interval', 'Track', 'Recovery', 'Trail', 'Race'],
+            'Strength': ['Heavy Lifting', 'Circuit', 'Mobility', 'Core', 'Rehab']
         };
 
-        // Authentication Logic
-        const loginBtn = document.getElementById('googleLoginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const userEmailTxt = document.getElementById('userEmail');
+        // Utility: Toast
+        const showToast = (msg, isError = false) => {
+            const el = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            el.style.borderColor = isError ? '#ef4444' : '#10b981';
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        };
 
-        loginBtn.addEventListener('click', () => {
-            signInWithPopup(auth, new GoogleAuthProvider()).catch(err => alert(err.message));
-        });
-        
-        logoutBtn.addEventListener('click', () => {
-            signOut(auth);
-        });
+        // Date Utils
+        const getStartOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const daysAgo = (d) => { const x = new Date(); x.setDate(x.getDate() - d); return getStartOfDay(x); };
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                userEmailTxt.textContent = user.email;
-                loginBtn.classList.add('hidden');
-                logoutBtn.classList.remove('hidden');
-                loadWorkouts(user.uid);
+        // DOM Elements
+        const DOM = {
+            loginBtn: document.getElementById('login-btn'),
+            logoutBtn: document.getElementById('logout-btn'),
+            userInfo: document.getElementById('user-info'),
+            userName: document.getElementById('user-name'),
+            loggedOutView: document.getElementById('logged-out-view'),
+            loggedInView: document.getElementById('loggedInView'), // fixed below
+
+            // Filters
+            fSearch: document.getElementById('f-search'),
+            fSport: document.getElementById('f-sport'),
+            fAllTime: document.getElementById('f-alltime'),
+
+            // Sub-type dropdown logic
+            wSport: document.getElementById('w-sport'),
+            wType: document.getElementById('w-type'),
+            wDistCont: document.getElementById('w-dist-container'),
+            wDist: document.getElementById('w-distance'),
+            wHrs: document.getElementById('w-hrs'),
+            wMins: document.getElementById('w-mins'),
+            wSecs: document.getElementById('w-secs'),
+        };
+
+        // Form setups
+        const updateSubTypes = () => {
+            const sp = DOM.wSport.value;
+            DOM.wType.innerHTML = sportSubs[sp].map(s => `<option value="${s}">${s}</option>`).join('');
+            if(sp === 'Strength') {
+                DOM.wDistCont.classList.add('hidden');
+                DOM.wDist.removeAttribute('required');
+                DOM.wDist.value = '';
             } else {
-                userEmailTxt.textContent = "Guest";
-                loginBtn.classList.remove('hidden');
-                logoutBtn.classList.add('hidden');
-                document.getElementById('feedList').innerHTML = '<p class="text-gray-400">Please sign in to see your workouts.</p>';
+                DOM.wDistCont.classList.remove('hidden');
+                DOM.wDist.setAttribute('required', 'true');
+            }
+        };
+        DOM.wSport.addEventListener('change', updateSubTypes);
+        updateSubTypes();
+
+        // Feed Filters
+        [DOM.fSearch, DOM.fSport, DOM.fAllTime].forEach(el => el.addEventListener('input', renderFeed));
+
+        // Auth
+        DOM.loginBtn.addEventListener('click', async () => {
+            try { await signInWithPopup(auth, new GoogleAuthProvider()); } 
+            catch(e) { showToast('Login failed', true); }
+        });
+        DOM.logoutBtn.addEventListener('click', () => signOut(auth));
+
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('logged-out-view').classList.add('hidden');
+                document.getElementById('logged-in-view').classList.remove('hidden');
+                document.getElementById('logged-in-view').classList.add('flex');
+                DOM.loginBtn.classList.add('hidden');
+                DOM.userInfo.classList.remove('hidden');
+                DOM.userName.textContent = user.displayName || 'Athlete';
+                initData();
+            } else {
+                currentUser = null;
+                document.getElementById('logged-out-view').classList.remove('hidden');
+                document.getElementById('logged-in-view').classList.add('hidden');
+                document.getElementById('logged-in-view').classList.remove('flex');
+                DOM.loginBtn.classList.remove('hidden');
+                DOM.userInfo.classList.add('hidden');
+                if(unsubWorkouts) unsubWorkouts();
+                if(unsubPlans) unsubPlans();
             }
         });
 
-        // Save Workout Logic
-        document.getElementById('workoutForm').addEventListener('submit', async (e) => {
+        // Initialize Defaults
+        document.getElementById('w-date').valueAsDate = new Date();
+        const t = new Date(); t.setDate(t.getDate()+1);
+        document.getElementById('p-date').valueAsDate = t;
+
+        function initData() {
+            if(!currentUser) return;
+            const wRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'workouts');
+            const pRef = collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans');
+
+            unsubWorkouts = onSnapshot(wRef, snap => {
+                workouts = [];
+                snap.forEach(d => workouts.push({id: d.id, ...d.data()}));
+                workouts.sort((a,b) => new Date(b.date) - new Date(a.date)); // newest first
+                renderFeed();
+                renderCharts();
+                renderPBs();
+            }, err => showToast('Error loading workouts', true));
+
+            unsubPlans = onSnapshot(pRef, snap => {
+                plans = [];
+                snap.forEach(d => plans.push({id: d.id, ...d.data()}));
+                renderCalendar();
+            }, err => showToast('Error loading plans', true));
+        }
+
+        // Add Workout
+        document.getElementById('workout-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            if(!auth.currentUser) return alert("Please sign in first!");
+            if(!currentUser) return;
 
-            const hrs = parseInt(document.getElementById('workoutHours').value) || 0;
-            const mins = parseInt(document.getElementById('workoutMins').value) || 0;
-            const secs = parseInt(document.getElementById('workoutSecs').value) || 0;
-            const totalMinutes = (hrs * 60) + mins + (secs / 60);
+            const btn = document.getElementById('w-submit');
+            btn.disabled = true; btn.textContent = 'Saving...';
 
-            let durationStr = "";
-            if (hrs > 0) durationStr += `${hrs}h `;
-            if (mins > 0 || hrs > 0) durationStr += `${mins}m `;
-            durationStr += `${secs}s`;
+            const h = parseInt(DOM.wHrs.value) || 0;
+            const m = parseInt(DOM.wMins.value) || 0;
+            const s = parseInt(DOM.wSecs.value) || 0;
+            const totalMins = (h * 60) + m + (s / 60);
+
+            if(totalMins <= 0) {
+                showToast('Duration must be greater than 0', true);
+                btn.disabled = false; btn.textContent = 'Save Session';
+                return;
+            }
+
+            let durStrParts = [];
+            if(h>0) durStrParts.push(`${h}h`);
+            if(m>0 || h>0) durStrParts.push(`${m}m`);
+            durStrParts.push(`${s}s`);
+
+            const data = {
+                date: document.getElementById('w-date').value,
+                sport: DOM.wSport.value,
+                subType: DOM.wType.value,
+                distance: DOM.wSport.value === 'Strength' ? 0 : (parseFloat(DOM.wDist.value)||0),
+                durationMins: totalMins,
+                durationStr: durStrParts.join(' '),
+                hr: parseInt(document.getElementById('w-hr').value) || null,
+                rpe: parseInt(document.getElementById('w-rpe').value),
+                notes: document.getElementById('w-notes').value.trim()
+            };
 
             try {
-                await addDoc(collection(db, "workouts"), {
-                    userId: auth.currentUser.uid,
-                    date: document.getElementById('workoutDate').value,
-                    sport: document.getElementById('workoutSport').value,
-                    distance: parseFloat(document.getElementById('workoutDistance').value) || 0,
-                    duration: totalMinutes,
-                    durationStr: durationStr.trim(),
-                    rpe: parseInt(document.getElementById('workoutRPE').value),
-                    notes: document.getElementById('workoutNotes').value,
-                    timestamp: serverTimestamp()
-                });
-                document.getElementById('workoutForm').reset();
-            } catch (error) {
-                console.error("Error saving: ", error);
-                alert("Failed to save workout.");
+                await addDoc(collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'workouts'), data);
+                showToast('Workout saved!');
+                // Reset numeric fields
+                DOM.wDist.value=''; DOM.wHrs.value=''; DOM.wMins.value=''; DOM.wSecs.value='';
+                document.getElementById('w-hr').value=''; document.getElementById('w-rpe').value='';
+                document.getElementById('w-notes').value='';
+            } catch(e) {
+                showToast('Save failed', true);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Save Session';
             }
         });
 
-        // Load & Filter Workouts
-        function loadWorkouts(uid) {
-            const q = query(collection(db, "workouts"), where("userId", "==", uid), orderBy("date", "desc"));
-            onSnapshot(q, (snapshot) => {
-                globalWorkouts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderDashboard();
-            });
-        }
+        // Add Plan
+        document.getElementById('plan-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!currentUser) return;
+            const btn = document.getElementById('p-submit');
+            btn.disabled = true; btn.textContent = 'Adding...';
 
-        document.getElementById('showAllTimeToggle').addEventListener('change', renderDashboard);
-
-        function renderDashboard() {
-            const feedList = document.getElementById('feedList');
-            feedList.innerHTML = '';
-            
-            const showAllTime = document.getElementById('showAllTimeToggle').checked;
-            const twoWeeksAgo = new Date();
-            twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-
-            const filtered = globalWorkouts.filter(w => {
-                if (showAllTime) return true;
-                return new Date(w.date) >= twoWeeksAgo;
-            });
-
-            if(filtered.length === 0) {
-                feedList.innerHTML = '<p class="text-gray-400">No workouts found for this period.</p>';
-            }
-
-            filtered.forEach(w => {
-                const displayDuration = w.durationStr || `${Math.round(w.duration)} mins`;
-                feedList.innerHTML += `
-                    <div class="bg-gray-700 p-3 rounded flex justify-between items-center">
-                        <div>
-                            <span class="font-bold text-${w.sport === 'Run' ? 'red' : w.sport === 'Bike' ? 'yellow' : w.sport === 'Swim' ? 'blue' : 'gray'}-400">${w.sport}</span>
-                            <span class="text-gray-300 ml-2">${w.date}</span>
-                            <div class="text-sm text-gray-400">${w.notes || ''}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-bold">${w.distance > 0 ? w.distance + ' km' : ''}</div>
-                            <div class="text-sm text-gray-400">${displayDuration} | RPE ${w.rpe}</div>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // Calculate Personal Bests
-        function formatPaceTime(minutes) {
-            if (!minutes || !isFinite(minutes)) return '--';
-            const h = Math.floor(minutes / 60);
-            const m = Math.floor(minutes % 60);
-            const s = Math.round((minutes * 60) % 60);
-            return h > 0 ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
-        }
-
-        function calculatePBs() {
-            const targets = {
-                'Swim': [0.5, 1, 2, 3.8],
-                'Bike': [20, 50, 100, 180, 200],
-                'Run': [1.6, 5, 10, 21.1, 42.2]
+            const data = {
+                date: document.getElementById('p-date').value,
+                sport: document.getElementById('p-sport').value,
+                dist: parseFloat(document.getElementById('p-dist').value)||0,
+                dur: parseFloat(document.getElementById('p-dur').value),
+                rpe: parseInt(document.getElementById('p-rpe').value),
+                focus: document.getElementById('p-focus').value.trim()
             };
-            
-            Object.keys(targets).forEach(sport => {
-                targets[sport].forEach(targetDistance => {
-                    // Find workouts of this sport that are AT LEAST the target distance
-                    const eligible = globalWorkouts.filter(w => w.sport === sport && w.distance >= targetDistance);
-                    let bestTime = null;
-                    
-                    if (eligible.length > 0) {
-                        // Find the one with the fastest pace (lowest minutes per km)
-                        const bestPace = Math.min(...eligible.map(w => w.duration / w.distance));
-                        bestTime = bestPace * targetDistance;
+
+            try {
+                await addDoc(collection(db, 'artifacts', APP_ID, 'users', currentUser.uid, 'plans'), data);
+                showToast('Plan added!');
+                document.getElementById('p-focus').value='';
+                document.getElementById('p-dur').value='';
+            } catch(e) {
+                showToast('Failed to add plan', true);
+            } finally {
+                btn.disabled = false; btn.textContent = 'Add to Plan';
+            }
+        });
+
+        // Global Delete
+        window.delDoc = async (col, id) => {
+            if(!currentUser) return;
+            try { await deleteDoc(doc(db, 'artifacts', APP_ID, 'users', currentUser.uid, col, id)); }
+            catch(e) { showToast('Delete failed', true); }
+        };
+
+        function renderFeed() {
+            const list = document.getElementById('feed-list');
+            const term = DOM.fSearch.value.toLowerCase();
+            const sport = DOM.fSport.value;
+            const showAll = DOM.fAllTime.checked;
+            const cutoff = daysAgo(14);
+
+            let html = '';
+            let count = 0;
+
+            workouts.forEach(w => {
+                const wDate = new Date(w.date + 'T12:00:00'); // avoid timezone shift
+                if (!showAll && !term && wDate < cutoff) return;
+                if (sport !== 'All' && w.sport !== sport) return;
+                if (term && !(w.notes||'').toLowerCase().includes(term) && !(w.subType||'').toLowerCase().includes(term)) return;
+
+                count++;
+                const colorMap = { 'Swim': 'sky', 'Bike': 'yellow', 'Run': 'red', 'Strength': 'emerald' };
+                const c = colorMap[w.sport] || 'slate';
+
+                let pace = '--';
+                if(w.distance > 0 && w.durationMins > 0) {
+                    if(w.sport === 'Bike') pace = (w.distance / (w.durationMins/60)).toFixed(1) + ' km/h';
+                    else {
+                        const mPerU = w.durationMins / (w.sport==='Swim' ? w.distance*10 : w.distance);
+                        const mins = Math.floor(mPerU);
+                        const secs = Math.round((mPerU - mins)*60);
+                        pace = `${mins}:${secs.toString().padStart(2,'0')} /${w.sport==='Swim'?'100m':'km'}`;
                     }
-                    
-                    document.getElementById(`pb-${sport.toLowerCase()}-${targetDistance}`).innerText = formatPaceTime(bestTime);
-                });
+                }
+
+                html += `
+                <div class="bg-slate-800/40 p-4 rounded-xl border border-${c}-500/20 hover:bg-slate-700/50 transition-colors group relative">
+                    <button onclick="delDoc('workouts', '${w.id}')" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition p-1 z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 rounded-full bg-${c}-400"></div>
+                        <h4 class="font-semibold text-slate-200 text-sm">${w.sport} <span class="text-slate-400 font-normal ml-1">| ${w.subType}</span></h4>
+                        <span class="text-xs text-slate-500 ml-auto mr-4">${new Date(w.date).toLocaleDateString(undefined, {month:'short', day:'numeric'})}</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2 text-center text-xs">
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Dist</div><div class="text-slate-300 font-medium">${w.sport==='Strength'?'-':w.distance+'k'}</div></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Time</div><div class="text-slate-300 font-medium">${w.durationStr || Math.round(w.durationMins)+'m'}</div></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">Pace</div><div class="text-slate-300 font-medium">${pace}</div></div>
+                        <div class="bg-slate-900/50 p-1.5 rounded"><div class="text-slate-500 uppercase text-[9px] mb-0.5">RPE</div><div class="text-slate-300 font-medium">${w.rpe}/10</div></div>
+                    </div>
+                    ${w.notes ? `<p class="text-xs text-slate-400 mt-2 border-l-2 border-slate-600 pl-2 italic">${w.notes}</p>` : ''}
+                </div>`;
+            });
+
+            list.innerHTML = count ? html : `<div class="text-slate-500 text-center text-sm mt-8">No workouts match criteria.</div>`;
+        }
+
+        function renderCharts() {
+            // Chart.js global defaults
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = 'Inter';
+
+            // 1. Yearly Volume (Stacked Bar)
+            const yearData = Array(12).fill(0).map(()=>({S:0, B:0, R:0}));
+            const currYear = new Date().getFullYear();
+            workouts.forEach(w => {
+                const d = new Date(w.date + 'T12:00:00');
+                if(d.getFullYear() === currYear && w.sport !== 'Strength') {
+                    const m = d.getMonth();
+                    if(w.sport==='Swim') yearData[m].S += w.distance;
+                    if(w.sport==='Bike') yearData[m].B += w.distance;
+                    if(w.sport==='Run')  yearData[m].R += w.distance;
+                }
+            });
+
+            if(chartVol) chartVol.destroy();
+            chartVol = new Chart(document.getElementById('chart-yearly'), {
+                type: 'bar',
+                data: {
+                    labels: ['J','F','M','A','M','J','J','A','S','O','N','D'],
+                    datasets: [
+                        { label: 'Swim', data: yearData.map(d=>d.S), backgroundColor: '#0ea5e9' },
+                        { label: 'Bike', data: yearData.map(d=>d.B), backgroundColor: '#eab308' },
+                        { label: 'Run',  data: yearData.map(d=>d.R), backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { stacked: true, grid: {display:false} }, y: { stacked: true, grid: {color: '#334155'} } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 2. Weekly Load (Line/Bar)
+            const weeks = Array(12).fill(0);
+            const today = getStartOfDay(new Date());
+            workouts.forEach(w => {
+                const d = new Date(w.date + 'T12:00:00');
+                const diffDays = Math.floor((today - d) / (1000*60*60*24));
+                const wk = Math.floor(diffDays / 7);
+                if(wk >= 0 && wk < 12) weeks[wk] += (w.durationMins * w.rpe);
+            });
+            weeks.reverse(); // Oldest to newest
+
+            if(chartLoad) chartLoad.destroy();
+            chartLoad = new Chart(document.getElementById('chart-load'), {
+                type: 'bar',
+                data: {
+                    labels: Array(12).fill(0).map((_,i) => `Wk -${11-i}`),
+                    datasets: [{ label: 'Load', data: weeks, backgroundColor: '#8b5cf6', borderRadius: 4 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { grid: {display:false} }, y: { grid: {color: '#334155'} } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 3. Pace Progression (Line) - For simplicity, tracking Run >= 10km
+            const longRuns = workouts.filter(w => w.sport === 'Run' && w.distance >= 10).sort((a,b) => new Date(a.date)-new Date(b.date));
+            const paceData = longRuns.map(w => w.durationMins / w.distance); // min/km
+            const paceLabels = longRuns.map(w => new Date(w.date).toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+
+            if(chartPace) chartPace.destroy();
+            chartPace = new Chart(document.getElementById('chart-pace'), {
+                type: 'line',
+                data: {
+                    labels: paceLabels,
+                    datasets: [{ label: 'Run Pace (>10k)', data: paceData, borderColor: '#ef4444', tension: 0.3, pointBackgroundColor: '#ef4444' }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { grid: {display:false} }, y: { reverse: true, title: {display:true, text:'min/km'}, grid: {color: '#334155'} } },
+                    plugins: { legend: { display: false } }
+                }
             });
         }
 
-        // Calendar Logic
+        window.calMove = (offset) => { calDate.setMonth(calDate.getMonth() + offset); renderCalendar(); };
+
         function renderCalendar() {
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '<div class="font-bold text-gray-400 pb-2">Sun</div><div class="font-bold text-gray-400 pb-2">Mon</div><div class="font-bold text-gray-400 pb-2">Tue</div><div class="font-bold text-gray-400 pb-2">Wed</div><div class="font-bold text-gray-400 pb-2">Thu</div><div class="font-bold text-gray-400 pb-2">Fri</div><div class="font-bold text-gray-400 pb-2">Sat</div>';
-            
+            const grid = document.getElementById('cal-grid');
+            document.getElementById('cal-month').textContent = calDate.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+
+            const y = calDate.getFullYear();
+            const m = calDate.getMonth();
+            const firstDay = new Date(y, m, 1).getDay();
+            const daysInMonth = new Date(y, m + 1, 0).getDate();
             const today = new Date();
-            for(let i = 0; i < 14; i++) {
-                const date = new Date(today);
-                date.setDate(today.getDate() + i);
-                const dateStr = date.toISOString().split('T')[0];
-                
-                grid.innerHTML += `
-                    <div class="bg-gray-700 p-2 rounded min-h-[80px] text-left">
-                        <span class="text-xs font-bold text-gray-400">${date.getDate()}/${date.getMonth()+1}</span>
-                        <div class="text-xs mt-1 text-gray-500">Plan session...</div>
-                    </div>
-                `;
+
+            let html = '';
+            for(let i=0; i<firstDay; i++) html += `<div class="bg-slate-900/30 border-r border-b border-slate-700/30"></div>`;
+
+            for(let d=1; d<=daysInMonth; d++) {
+                const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const isToday = d===today.getDate() && m===today.getMonth() && y===today.getFullYear();
+
+                const dPlans = plans.filter(p => p.date === dateStr);
+                const pBlocks = dPlans.map(p => {
+                    const c = p.sport==='Swim'?'sky':(p.sport==='Bike'?'yellow':(p.sport==='Run'?'red':'emerald'));
+                    return `
+                    <div class="relative group text-[9px] leading-tight p-0.5 mb-0.5 rounded border-l-2 border-${c}-500 bg-${c}-500/10 text-${c}-400 overflow-hidden text-ellipsis whitespace-nowrap">
+                        ${p.sport.charAt(0)}: ${p.focus||p.dur+'m'}
+                        <button onclick="delDoc('plans','${p.id}')" class="hidden group-hover:block absolute right-0 top-0 bg-slate-800 px-1 text-red-400 hover:text-red-300">x</button>
+                    </div>`;
+                }).join('');
+
+                html += `
+                <div class="bg-slate-900/60 border-r border-b border-slate-700/30 p-1 min-h-[80px] flex flex-col hover:bg-slate-800/80 transition-colors">
+                    <div class="text-right mb-1"><span class="inline-flex w-5 h-5 items-center justify-center text-xs ${isToday?'bg-blue-600 text-white rounded-full font-bold':'text-slate-400'}">${d}</span></div>
+                    <div class="flex-1 overflow-y-auto no-scrollbar">${pBlocks}</div>
+                </div>`;
             }
+            grid.innerHTML = html;
         }
 
-        // AI Coach Logic
-        document.getElementById('analyzeBtn').addEventListener('click', async () => {
-            const key = document.getElementById('geminiApiKey').value;
-            const output = document.getElementById('aiResponse');
-            
-            if (!key) return alert("Please enter your Gemini API Key.");
-            
-            output.classList.remove('hidden');
-            output.innerText = "Analyzing your training load...";
-            
-            try {
-                // Formatting data for the AI prompt
-                const dataString = globalWorkouts.slice(0, 20).map(w => `${w.date} - ${w.sport} - ${w.distance}km - ${w.durationStr || w.duration+'m'} - RPE ${w.rpe}`).join('\n');
-                
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `Act as an elite triathlon coach. Review my recent training:\n${dataString}\nGive me a 3-paragraph summary on my fatigue, volume progression, and what I should focus on next week.` }] }]
-                    })
+        function renderPBs() {
+            const tMap = {
+                'Swim': [0.5, 1, 2, 3, 4, 5],
+                'Bike': [20, 50, 100, 150, 200],
+                'Run':  [1.6, 5, 10, 21.1, 42.2]
+            };
+
+            const fmt = (m) => {
+                const hrs = Math.floor(m/60); const mins = Math.floor(m%60); const secs = Math.round((m%1)*60);
+                if(hrs>0) return `${hrs}h ${mins}m ${secs}s`;
+                return `${mins}m ${secs}s`;
+            };
+
+            Object.keys(tMap).forEach(sp => {
+                let html = '';
+                tMap[sp].forEach(tDist => {
+                    let bestPace = Infinity; // min/km or min/km eqv
+                    let bestSpeed = 0;       // km/h for bike
+
+                    workouts.forEach(w => {
+                        if(w.sport !== sp || w.distance < tDist) return;
+                        if(sp === 'Bike') {
+                            const speed = w.distance / (w.durationMins/60);
+                            if(speed > bestSpeed) bestSpeed = speed;
+                        } else {
+                            const pace = w.durationMins / w.distance;
+                            if(pace < bestPace) bestPace = pace;
+                        }
+                    });
+
+                    let display = '--';
+                    if(sp==='Bike' && bestSpeed > 0) display = fmt((tDist/bestSpeed)*60);
+                    else if(sp!=='Bike' && bestPace !== Infinity) display = fmt(bestPace * tDist);
+
+                    html += `
+                    <div class="flex justify-between items-center py-2 border-b border-slate-700/50 last:border-0">
+                        <span class="text-sm text-slate-300">${tDist}${sp==='Swim'&&tDist<1?'km (500m)':'km'}</span>
+                        <span class="text-sm font-semibold ${display==='--'?'text-slate-600':'text-white'}">${display}</span>
+                    </div>`;
                 });
-                
-                const data = await response.json();
-                if(data.error) throw new Error(data.error.message);
-                
-                output.innerText = data.candidates[0].content.parts[0].text;
-            } catch (error) {
-                output.innerText = `Error connecting to AI: ${error.message}`;
+                document.getElementById(`pb-${sp.toLowerCase()}`).innerHTML = html;
+            });
+        }
+
+        // Tab Switcher
+        window.switchTab = (id) => {
+            ['dashboard','plan','pbs','ai'].forEach(t => {
+                document.getElementById(`tab-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).classList.remove('flex');
+                document.getElementById(`tab-btn-${t}`).classList.remove('bg-blue-600', 'bg-purple-600', 'text-white');
+                document.getElementById(`tab-btn-${t}`).classList.add('bg-slate-800', 'text-slate-400');
+            });
+            const tab = document.getElementById(`tab-${id}`);
+            tab.classList.remove('hidden'); tab.classList.add('flex');
+            const btn = document.getElementById(`tab-btn-${id}`);
+            btn.classList.remove('bg-slate-800', 'text-slate-400');
+            btn.classList.add('text-white', id==='ai'?'bg-purple-600':'bg-blue-600');
+        };
+
+        // AI Request
+        document.getElementById('ai-btn').addEventListener('click', async () => {
+            const key = document.getElementById('ai-key').value.trim();
+            if(!key) return showToast('Please enter an API Key', true);
+
+            const btn = document.getElementById('ai-btn');
+            const out = document.getElementById('ai-output');
+            btn.disabled = true; btn.textContent = 'Analyzing...';
+            out.innerHTML = `<div class="flex items-center gap-3 text-purple-400"><div class="loading-spinner border-t-purple-500"></div> Parsing history and plans...</div>`;
+
+            // Collect Data
+            const today = getStartOfDay(new Date());
+            const mtd = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            let mtdVol = 0;
+            let histWeeks = [0,0,0,0]; // Last 4 weeks load
+            workouts.forEach(w => {
+                const d = new Date(w.date + 'T12:00:00');
+                if(d >= mtd) mtdVol += w.durationMins;
+                const diffD = Math.floor((today - d)/(1000*60*60*24));
+                const wk = Math.floor(diffD/7);
+                if(wk>=0 && wk<4) histWeeks[wk] += (w.durationMins * w.rpe);
+            });
+
+            let fWeek1 = 0, fWeek2 = 0;
+            plans.forEach(p => {
+                const d = new Date(p.date + 'T12:00:00');
+                const diffD = Math.floor((d - today)/(1000*60*60*24));
+                if(diffD>=0 && diffD<7) fWeek1 += (p.dur * p.rpe);
+                if(diffD>=7 && diffD<14) fWeek2 += (p.dur * p.rpe);
+            });
+
+            const prompt = `Act as an elite triathlon coach. Analyze my training data directly. Do not use markdown styling. Give 3 short paragraphs:
+1. Historic: My last 4 weeks of load (Wk-1: ${histWeeks[0]}, Wk-2: ${histWeeks[1]}, Wk-3: ${histWeeks[2]}, Wk-4: ${histWeeks[3]}). Am I building safely?
+2. Current: My Month-to-Date volume is ${Math.round(mtdVol/60)} hours. Is this a solid base?
+3. Future: My planned load next week is ${fWeek1}, and the week after is ${fWeek2}. Give advice on this upcoming block.`;
+
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${key}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error.message);
+                out.textContent = data.candidates[0].content.parts[0].text;
+            } catch (err) {
+                out.innerHTML = `<span class="text-red-400">Error: ${err.message}. Please verify your key.</span>`;
+            } finally {
+                btn.disabled = false; btn.textContent = 'Analyze My Week';
             }
         });
     </script>
